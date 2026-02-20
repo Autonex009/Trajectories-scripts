@@ -9,7 +9,9 @@ import re
 from typing import Any, Dict, Optional, Tuple, List, Union
 from urllib.parse import parse_qs, urlparse
 from pydantic import BaseModel
-from navi_bench.base import BaseMetric
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from navi_bench.base import BaseMetric, BaseTaskConfig, UserMetadata, get_import_path
 
 
 class RentVerifierResult(BaseModel):
@@ -235,3 +237,19 @@ class RentUrlMatch(BaseMetric):
                     return False, details
 
         return True, details
+    
+def generate_task_config(
+    url: str,
+    task: str,
+    location: str,
+    timezone: str,
+    gt_urls: list[list[str]],
+) -> BaseTaskConfig:
+    tz_info = ZoneInfo(timezone)
+    timestamp = int(datetime.now(tz_info).timestamp())
+    user_metadata = UserMetadata(location=location, timezone=timezone, timestamp=timestamp)
+
+    eval_target = get_import_path(RentUrlMatch)
+    eval_config = {"_target_": eval_target, "gt_urls": gt_urls}
+
+    return BaseTaskConfig(url=url, task=task, user_metadata=user_metadata, eval_config=eval_config)
