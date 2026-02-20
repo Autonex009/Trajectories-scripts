@@ -1,0 +1,228 @@
+{
+    "version": "1.0",
+    "description": "StubHub Verifier Test Cases - True Positive, True Negative, False Positive scenarios",
+    "created": "2025-12-31",
+    "tasks": [
+        {
+            "id": "TP-001",
+            "name": "Coldplay Israel - Haifa Event",
+            "type": "true_positive",
+            "description": "User navigates to correct Coldplay event in Israel (Haifa). Should PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Coldplay → Click Haifa event",
+            "query": {
+                "event_names": [
+                    "coldplay"
+                ],
+                "cities": [
+                    "haifa",
+                    "tel aviv",
+                    "jerusalem",
+                    "israel"
+                ],
+                "require_available": false
+            },
+            "location": "Israel",
+            "timezone": "Asia/Jerusalem",
+            "category": "concerts"
+        },
+        {
+            "id": "TP-002",
+            "name": "Zakir Khan Pune",
+            "type": "true_positive",
+            "description": "User navigates to Zakir Khan event in Pune. Should PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Zakir Khan → Click Pune event",
+            "query": {
+                "event_names": [
+                    "zakir khan",
+                    "zakir"
+                ],
+                "cities": [
+                    "pune"
+                ],
+                "require_available": false
+            },
+            "location": "India",
+            "timezone": "Asia/Kolkata",
+            "category": "comedy"
+        },
+        {
+            "id": "TP-003",
+            "name": "NBA Lakers Game",
+            "type": "true_positive",
+            "description": "User navigates to any Lakers NBA game. Should PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Lakers → Click any Lakers game",
+            "query": {
+                "event_names": [
+                    "lakers",
+                    "los angeles lakers"
+                ],
+                "event_categories": [
+                    "sports",
+                    "basketball",
+                    "nba"
+                ],
+                "require_available": false
+            },
+            "location": "United States",
+            "timezone": "America/Los_Angeles",
+            "category": "sports"
+        },
+        {
+            "id": "TN-001",
+            "name": "Coldplay Israel - Wrong City (Brno)",
+            "type": "true_negative",
+            "description": "User navigates to Coldplay event in Brno (Czech Republic) instead of Israel. Should FAIL.",
+            "expected_result": "FAIL",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Coldplay → Click Brno event (WRONG)",
+            "query": {
+                "event_names": [
+                    "coldplay"
+                ],
+                "cities": [
+                    "haifa",
+                    "tel aviv",
+                    "jerusalem",
+                    "israel"
+                ],
+                "require_available": false
+            },
+            "location": "Israel",
+            "timezone": "Asia/Jerusalem",
+            "category": "concerts"
+        },
+        {
+            "id": "TN-002",
+            "name": "Wrong Artist - Taylor Swift instead of Coldplay",
+            "type": "true_negative",
+            "description": "User navigates to Taylor Swift event when looking for Coldplay. Should FAIL.",
+            "expected_result": "FAIL",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Taylor Swift → Click any event (WRONG)",
+            "query": {
+                "event_names": [
+                    "coldplay"
+                ],
+                "cities": [
+                    "haifa",
+                    "tel aviv",
+                    "jerusalem",
+                    "israel"
+                ],
+                "require_available": false
+            },
+            "location": "Israel",
+            "timezone": "Asia/Jerusalem",
+            "category": "concerts"
+        },
+        {
+            "id": "TN-003",
+            "name": "NBA Game Wrong Team",
+            "type": "true_negative",
+            "description": "User navigates to Celtics game when looking for Lakers. Should FAIL.",
+            "expected_result": "FAIL",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Celtics → Click Celtics game (WRONG)",
+            "query": {
+                "event_names": [
+                    "lakers"
+                ],
+                "require_available": false
+            },
+            "location": "United States",
+            "timezone": "America/Los_Angeles",
+            "category": "sports"
+        },
+        {
+            "id": "FP-001",
+            "name": "Category Page Match (No Click Through)",
+            "type": "false_positive_check",
+            "description": "User stays on category page where correct event is visible but doesn't click. Tests lenient matching.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Coldplay → Stay on category page (see Haifa in list)",
+            "query": {
+                "event_names": [
+                    "coldplay"
+                ],
+                "cities": [
+                    "haifa",
+                    "tel aviv",
+                    "jerusalem",
+                    "israel"
+                ],
+                "require_available": false
+            },
+            "location": "Israel",
+            "timezone": "Asia/Jerusalem",
+            "category": "concerts"
+        },
+        {
+            "id": "FP-002",
+            "name": "Sold Out Event Detection",
+            "type": "false_positive_check",
+            "description": "User navigates to sold out event. With require_available=false, should still PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Find any sold out event",
+            "query": {
+                "event_names": [
+                    "concert"
+                ],
+                "require_available": false
+            },
+            "location": "United States",
+            "timezone": "America/Los_Angeles",
+            "category": "concerts"
+        },
+        {
+            "id": "TP-004",
+            "name": "Generic Concert Search",
+            "type": "true_positive",
+            "description": "User finds any concert event. Should PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Browse concerts → Click any event",
+            "query": {
+                "event_categories": [
+                    "concerts",
+                    "music"
+                ],
+                "require_available": false
+            },
+            "location": "Worldwide",
+            "timezone": "UTC",
+            "category": "concerts"
+        },
+        {
+            "id": "TP-005",
+            "name": "Theater Broadway Show",
+            "type": "true_positive",
+            "description": "User finds Hamilton tickets in New York. Should PASS.",
+            "expected_result": "PASS",
+            "url": "https://www.stubhub.com/",
+            "navigation_hint": "Search Hamilton → Click NYC event",
+            "query": {
+                "event_names": [
+                    "hamilton"
+                ],
+                "cities": [
+                    "new york",
+                    "nyc",
+                    "manhattan",
+                    "broadway"
+                ],
+                "require_available": false
+            },
+            "location": "United States",
+            "timezone": "America/New_York",
+            "category": "theater"
+        }
+    ]
+}

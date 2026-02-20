@@ -103,12 +103,6 @@ class OpenTableInfoGathering(BaseMetric):
             if "take online reservations that far in advance" in info["info"].lower():
                 self._handle_too_far_in_advance(info)
 
-            if "your party is too small" in info["info"].lower():
-                self._handle_party_too_small_or_too_large(info, issue="too small")
-
-            if "your party is too large" in info["info"].lower():
-                self._handle_party_too_small_or_too_large(info, issue="too large")
-
         for i, alternative_conditions in enumerate(self.queries):
             if self._is_query_covered[i]:
                 continue
@@ -143,9 +137,6 @@ class OpenTableInfoGathering(BaseMetric):
                     query_names = [name.lower() for name in query_names]
                     if too_far_restaurant not in query_names:
                         continue
-                else:
-                    # Conditions without restaurant names should not be affected by too far in advance
-                    continue
 
                 # Check if ALL dates in this alternative condition are >= too_far_date
                 if query_dates := alternative_condition.get("dates"):
@@ -153,49 +144,6 @@ class OpenTableInfoGathering(BaseMetric):
                         logger.info(
                             f"OpenTableInfoGathering marking query {i} as covered due to too far in advance: "
                             f"{alternative_condition=}, all dates >= {too_far_date}"
-                        )
-                        self._is_query_covered[i] = True
-                        break
-
-    def _handle_party_too_small_or_too_large(self, info: InfoDict, issue: str = "too small") -> None:
-        """Handle cases where the party is too small or too large to book.
-
-        If we find evidence that a restaurant doesn't take reservations for a certain party size,
-        mark queries as covered if ALL their party sizes are <= that size.
-        """
-        party_issue_size = info["partySize"]
-        party_issue_restaurant = info["restaurantName"].lower()
-
-        logger.info(
-            f"OpenTableInfoGathering found 'party {issue}' for "
-            f"{party_issue_restaurant} with party size {party_issue_size}"
-        )
-
-        for i, alternative_conditions in enumerate(self.queries):
-            if self._is_query_covered[i]:
-                continue
-            # Check if ANY alternative condition can be satisfied by this party too small/large evidence
-            for alternative_condition in alternative_conditions:
-                # Check if restaurant name matches
-                if query_names := alternative_condition.get("restaurant_names"):
-                    query_names = [name.lower() for name in query_names]
-                    if party_issue_restaurant not in query_names:
-                        continue
-                else:
-                    # Conditions without restaurant names should not be affected by party too small/large
-                    continue
-
-                # Check if ALL party sizes in this alternative condition are
-                # <= party_issue_size (if too small) or >= party_issue_size (if too large)
-                if query_party_sizes := alternative_condition.get("party_sizes"):
-                    if all(
-                        party_size <= party_issue_size if issue == "too small" else party_size >= party_issue_size
-                        for party_size in query_party_sizes
-                    ):
-                        logger.info(
-                            f"OpenTableInfoGathering marking query {i} as covered due to party {issue}: "
-                            f"{alternative_condition=}, "
-                            f"all party sizes {'<=' if issue == 'too small' else '>='} {party_issue_size}"
                         )
                         self._is_query_covered[i] = True
                         break
@@ -615,17 +563,15 @@ def normalize_time_string(time_str: str) -> str:
     return time_str
 
 
-def get_next_weekend_offsets(today: datetime) -> list[int]:
+def get_next_weekend_offsets() -> list[int]:
     """
     Get the day offsets for the next weekend (Saturday and Sunday).
     If today is Saturday or Sunday, returns the following weekend.
 
-    Args:
-        today: Timezone-aware datetime for "today" (must be timezone-aware from config).
-
     Returns:
         List of two integers: [days_to_saturday, days_to_sunday]
     """
+    today = datetime.now()
     current_day = today.weekday()  # 0=Monday, 6=Sunday
 
     # Calculate days until next Saturday
@@ -637,24 +583,22 @@ def get_next_weekend_offsets(today: datetime) -> list[int]:
     return [days_to_sat, days_to_sat + 1]  # [Saturday, Sunday]
 
 
-def get_first_weekend_of_next_month_offsets(today: datetime) -> list[int]:
+def get_first_weekend_of_next_month_offsets() -> list[int]:
     """
     Get the day offsets for the first weekend of the next calendar month (Saturday and Sunday).
-
-    Args:
-        today: Timezone-aware datetime for "today" (must be timezone-aware from config).
 
     Returns:
         List of two integers: [days_to_first_saturday, days_to_first_sunday]
     """
+    today = datetime.now()
     # Normalize to date only (remove time component)
-    today_date = datetime(today.year, today.month, today.day, tzinfo=today.tzinfo)
+    today_date = datetime(today.year, today.month, today.day)
 
     # Get the first day of the next calendar month
     if today.month == 12:
-        first_of_next_month = datetime(today.year + 1, 1, 1, tzinfo=today.tzinfo)
+        first_of_next_month = datetime(today.year + 1, 1, 1)
     else:
-        first_of_next_month = datetime(today.year, today.month + 1, 1, tzinfo=today.tzinfo)
+        first_of_next_month = datetime(today.year, today.month + 1, 1)
 
     # Find what day of the week the 1st is (0=Monday, 6=Sunday)
     first_day_weekday = first_of_next_month.weekday()
@@ -676,7 +620,7 @@ def get_first_weekend_of_next_month_offsets(today: datetime) -> list[int]:
     return [days_to_saturday, days_to_sunday]
 
 
-def get_days_until_date(date_label: str, today: datetime) -> list[int]:
+def get_days_until_date(date_label: str) -> list[int]:
     """
     Calculate the number of days until the target date(s) based on the label.
 
@@ -684,7 +628,6 @@ def get_days_until_date(date_label: str, today: datetime) -> list[int]:
         date_label: String like "tomorrow", "day after tomorrow", "for the upcoming Monday",
                    "upcoming weekend", "the following weekend", "the next two weekends",
                    or "the first weekend of the next calendar month"
-        today: Timezone-aware datetime for "today" (must be timezone-aware from config).
 
     Returns:
         List of day offsets from today to the target date(s)
@@ -694,18 +637,18 @@ def get_days_until_date(date_label: str, today: datetime) -> list[int]:
     elif date_label == "day after tomorrow":
         return [2]
     elif date_label == "upcoming weekend":
-        return get_next_weekend_offsets(today)
+        return get_next_weekend_offsets()
     elif date_label == "the following weekend":
         # Get upcoming weekend first, then add 7 days
-        upcoming = get_next_weekend_offsets(today)
+        upcoming = get_next_weekend_offsets()
         return [upcoming[0] + 7, upcoming[1] + 7]
     elif date_label == "the next two weekends":
         # Combine upcoming weekend and following weekend
-        upcoming = get_next_weekend_offsets(today)
+        upcoming = get_next_weekend_offsets()
         following = [upcoming[0] + 7, upcoming[1] + 7]
         return upcoming + following
     elif date_label in {"the first weekend of the next calendar month", "the first weekend of next month"}:
-        return get_first_weekend_of_next_month_offsets(today)
+        return get_first_weekend_of_next_month_offsets()
     elif date_label.startswith("for the upcoming "):
         # Extract weekday name
         weekday_name = date_label.replace("for the upcoming ", "")
@@ -721,6 +664,7 @@ def get_days_until_date(date_label: str, today: datetime) -> list[int]:
         target_day = weekday_map[weekday_name]
 
         # Calculate days until next occurrence of this weekday
+        today = datetime.now()
         current_day = today.weekday()  # 0=Monday, 6=Sunday
         days_ahead = (target_day - current_day) % 7
 
@@ -810,7 +754,7 @@ def generate_task_config_random(
 
     # Randomly select date option
     date_label = random.choice(available_date_options)
-    days_offsets = get_days_until_date(date_label, today)
+    days_offsets = get_days_until_date(date_label)
 
     # Calculate the actual date(s)
     target_dates = [today + timedelta(days=offset) for offset in days_offsets]
@@ -957,7 +901,7 @@ if __name__ == "__main__":
         "task_id": "navi_bench/opentable/any_sr_sd_mt_mp/0",
         "task_generation_config_json": json.dumps(
             {
-                "_target_": ("navi_bench.opentable.opentable_info_gathering.generate_task_config_deterministic"),
+                "_target_": "navi_bench.opentable.opentable_info_gathering.generate_task_config_deterministic",
                 "mode": "any",
                 "url": "https://www.opentable.com",
                 "task": (
@@ -998,7 +942,7 @@ if __name__ == "__main__":
         "task_id": "navi_bench/opentable/all_sr_md_mt_sp/0",
         "task_generation_config_json": json.dumps(
             {
-                "_target_": ("navi_bench.opentable.opentable_info_gathering.generate_task_config_deterministic"),
+                "_target_": "navi_bench.opentable.opentable_info_gathering.generate_task_config_deterministic",
                 "mode": "all",
                 "url": "https://www.opentable.com",
                 "task": (
@@ -1031,7 +975,7 @@ if __name__ == "__main__":
         "task_id": "navi_bench/opentable/random_sr_sd_mt_sp/0",
         "task_generation_config_json": json.dumps(
             {
-                "_target_": ("navi_bench.opentable.opentable_info_gathering.generate_task_config_random"),
+                "_target_": "navi_bench.opentable.opentable_info_gathering.generate_task_config_random",
                 "restaurant": {"city": "SF", "name": "Wayfare Tavern", "max_party_size": 8},
                 "date_options": ["for the upcoming Wednesday"],
                 "meal_times": ["lunch"],

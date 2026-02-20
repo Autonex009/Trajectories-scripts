@@ -21,7 +21,7 @@ class FinalResult(BaseModel):
 
 @beartype
 class ApartmentsUrlMatch(BaseMetric):
-    IGNORED_PARAMS = ("io", "ss")
+    IGNORED_PARAMS = ("io",)
 
     def __init__(self, gt_url: str | list[str]) -> None:
         super().__init__()
