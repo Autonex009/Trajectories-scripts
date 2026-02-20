@@ -40,6 +40,13 @@ class RentUrlMatch(BaseMetric):
         self.strict_location = strict_location
         self.strict_filters = strict_filters
         self._agent_url: Optional[str] = None
+    
+    async def reset(self) -> None:
+        """
+        Clears the internal state for the next evaluation run.
+        Prevents stale agent URLs from leaking across tasks.
+        """
+        self._agent_url = None
 
     async def update(self, *, url: Optional[str] = None, **kwargs) -> None:
         if url:
