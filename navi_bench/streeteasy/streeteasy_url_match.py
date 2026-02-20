@@ -87,6 +87,10 @@ IGNORED_QUERY_PARAMS = {
     "referrer", "v", "map_zoom",
 }
 
+# Pipe-delimited path filters to ignore (map/viewport artifacts)
+# in_rect = map bounding box (lat,lat,lon,lon) from zoom/pan
+IGNORED_FILTERS = {"in_rect"}
+
 # Chrome-Verified Property Type Codes
 PROPERTY_TYPE_CODES = {
     "D1": "condo",
@@ -257,6 +261,7 @@ AMENITY_ALIASES = {
     "walk-in-closet": "walk_in_closet",
     "no_fee": "no_fee",
     "no-fee": "no_fee",
+    "furnished": "furnished",
 }
 
 # Status value aliases
@@ -532,6 +537,9 @@ class StreetEasyUrlMatch(BaseMetric):
 
             key, value = self._parse_single_filter(raw_filter)
             if key:
+                # Skip map/viewport filters
+                if key.lower().replace("-", "_") in IGNORED_FILTERS:
+                    continue
                 canonical_key, canonical_value = self._normalize_filter(key, value)
 
                 # Handle multi-value filters (e.g., subway:L|subway:1)
@@ -726,13 +734,28 @@ class StreetEasyUrlMatch(BaseMetric):
 
 def generate_task_config(
     task: str,
-    gt_url: list[str],
     location: str,
     timezone: str,
+    gt_url: list[str] | None = None,
+    ground_truth_url: str | None = None,
     timestamp: int | None = None,
     url: str = "https://streeteasy.com",
 ) -> BaseTaskConfig:
-    """Generate task configuration for StreetEasy URL matching."""
+    """Generate task configuration for StreetEasy URL matching.
+
+    Accepts either ``gt_url`` (NaviBench canonical form, list of strings) or
+    ``ground_truth_url`` (CSV export form, single string) so that the function
+    works both when called by ``instantiate()`` from the benchmark CSV and when
+    called directly from code.
+    """
+    # Resolve gt_url from either parameter
+    if gt_url is None and ground_truth_url is not None:
+        gt_url = [ground_truth_url]
+    elif isinstance(gt_url, str):
+        gt_url = [gt_url]
+    elif gt_url is None:
+        raise ValueError("Either 'gt_url' or 'ground_truth_url' must be provided.")
+
     user_metadata = initialize_user_metadata(timezone, location, timestamp)
     eval_target = get_import_path(StreetEasyUrlMatch)
     eval_config = {"_target_": eval_target, "gt_url": gt_url}
