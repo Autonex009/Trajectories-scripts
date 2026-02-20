@@ -53,7 +53,7 @@ async def run_verification_tests(json_path: str):
             total_tests += 1
             
             # Initialize verifier
-            verifier = HomesUrlMatch(ground_truth_urls=ground_truth_url)
+            verifier = HomesUrlMatch(gt_urls=ground_truth_url)
             await verifier.update(url=test_url)
             result = await verifier.compute()
             
