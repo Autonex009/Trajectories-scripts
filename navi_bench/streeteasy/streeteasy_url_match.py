@@ -9,6 +9,7 @@ The verifier handles all StreetEasy URL variations including:
 - Pipe-delimited filter segments (price:500000-|beds:2|type:D1)
 - Property type codes (D1=condo, P1=co-op, comma-delimited combos)
 - Amenity prefix format (amenities:doorman, amenities:elevator)
+- Optional amenity prefix (opt_amenities:X — "Must-have" toggle OFF)
 - Range filters with hyphen (price:MIN-MAX, sqft:MIN-MAX)
 - Comparison operators (beds>=2, baths>=1.5)
 - Pets filter (pets:allowed)
@@ -21,6 +22,7 @@ The verifier handles all StreetEasy URL variations including:
 Chrome-Verified Patterns (Feb 2026):
 - type:D1 = Condo, type:P1 = Co-op, type:D1,P1 = combo
 - amenities:doorman, amenities:elevator, amenities:gym, amenities:laundry
+- opt_amenities:parking (Must-have toggle OFF → optional amenity)
 - pets:allowed (not pets:cats/pets:large_dogs)
 - beds>=2, baths>=1.5 (comparison operators)
 - status:sold
@@ -84,6 +86,10 @@ IGNORED_QUERY_PARAMS = {
     "utm_source", "utm_medium", "utm_content", "utm_campaign",
     "referrer", "v", "map_zoom",
 }
+
+# Pipe-delimited path filters to ignore (map/viewport artifacts)
+# in_rect = map bounding box (lat,lat,lon,lon) from zoom/pan
+IGNORED_FILTERS = {"in_rect"}
 
 # Chrome-Verified Property Type Codes
 PROPERTY_TYPE_CODES = {
@@ -165,7 +171,9 @@ FILTER_NAME_ALIASES = {
     "pre_war": "prewar",
     "pre-war": "prewar",
     "new_development": "new_development",
+    "new_developments": "new_development",
     "new-development": "new_development",
+    "new-developments": "new_development",
     "new_dev": "new_development",
     "income_restricted": "income_restricted",
     "income-restricted": "income_restricted",
@@ -199,13 +207,16 @@ FILTER_NAME_ALIASES = {
 }
 
 # Amenity name aliases: map variant names to canonical amenity values
-# These use the "amenities:" prefix in real URLs
+# These use the "amenities:" or "opt_amenities:" prefix in real URLs
+# amenities: = Must-have toggle ON
+# opt_amenities: = Must-have toggle OFF (optional/preferred)
 AMENITY_ALIASES = {
     "doorman": "doorman",
     "elevator": "elevator",
     "gym": "gym",
     "fitness": "gym",
     "pool": "pool",
+    "swimming_pool": "pool",
     "laundry": "laundry",
     "laundry_in_building": "laundry",
     "laundry-in-building": "laundry",
@@ -219,6 +230,7 @@ AMENITY_ALIASES = {
     "roof-deck": "roof_deck",
     "common_outdoor": "common_outdoor",
     "common_outdoor_space": "common_outdoor",
+    "shared_outdoor_space": "common_outdoor",
     "childrens_playroom": "childrens_playroom",
     "live_in_super": "live_in_super",
     "live-in-super": "live_in_super",
@@ -233,6 +245,10 @@ AMENITY_ALIASES = {
     "washer_dryer": "in_unit_laundry",
     "outdoor_space": "outdoor_space",
     "outdoor-space": "outdoor_space",
+    "private_outdoor_space": "outdoor_space",
+    "private-outdoor-space": "outdoor_space",
+    "pied_a_terre": "pied_a_terre",
+    "pied-a-terre": "pied_a_terre",
     "terrace": "terrace",
     "balcony": "balcony",
     "garden": "garden",
@@ -245,6 +261,7 @@ AMENITY_ALIASES = {
     "walk-in-closet": "walk_in_closet",
     "no_fee": "no_fee",
     "no-fee": "no_fee",
+    "furnished": "furnished",
 }
 
 # Status value aliases
@@ -260,7 +277,7 @@ STATUS_ALIASES = {
 }
 
 # Boolean value normalization
-BOOLEAN_TRUE_VALUES = {"1", "true", "yes", "on", "allowed"}
+BOOLEAN_TRUE_VALUES = {"1", "true", "yes", "on", "allowed", "new development", "pre-war", "pre_war", "prewar"}
 
 
 # ============================================================================
@@ -520,6 +537,9 @@ class StreetEasyUrlMatch(BaseMetric):
 
             key, value = self._parse_single_filter(raw_filter)
             if key:
+                # Skip map/viewport filters
+                if key.lower().replace("-", "_") in IGNORED_FILTERS:
+                    continue
                 canonical_key, canonical_value = self._normalize_filter(key, value)
 
                 # Handle multi-value filters (e.g., subway:L|subway:1)
@@ -573,11 +593,15 @@ class StreetEasyUrlMatch(BaseMetric):
         key = key.lower().strip()
         value = value.strip().lower()
 
-        # Handle "amenities:" prefix — this is the real StreetEasy format
-        # Supports both single (amenities:doorman) and comma-separated
-        # (amenities:elevator,doorman) values — the latter is what
-        # StreetEasy's UI actually generates (browser-verified Feb 2026)
-        if key == "amenities":
+        # Handle "amenities:" and "opt_amenities:" prefixes
+        # StreetEasy uses two prefixes depending on the "Must-have" toggle:
+        #   amenities:X     = Must-have ON (required amenity)
+        #   opt_amenities:X = Must-have OFF (optional/preferred amenity)
+        # Both are normalized to "amenities" key for matching, since task
+        # descriptions say "with parking" not "must-have parking".
+        # Supports single (amenities:doorman) and comma-separated
+        # (amenities:elevator,doorman) values (browser-verified Feb 2026)
+        if key in ("amenities", "opt_amenities"):
             amenities = [a.strip() for a in value.split(",")]
             normalized = []
             for a in amenities:
@@ -710,13 +734,28 @@ class StreetEasyUrlMatch(BaseMetric):
 
 def generate_task_config(
     task: str,
-    gt_url: list[str],
     location: str,
     timezone: str,
+    gt_url: list[str] | None = None,
+    ground_truth_url: str | None = None,
     timestamp: int | None = None,
     url: str = "https://streeteasy.com",
 ) -> BaseTaskConfig:
-    """Generate task configuration for StreetEasy URL matching."""
+    """Generate task configuration for StreetEasy URL matching.
+
+    Accepts either ``gt_url`` (NaviBench canonical form, list of strings) or
+    ``ground_truth_url`` (CSV export form, single string) so that the function
+    works both when called by ``instantiate()`` from the benchmark CSV and when
+    called directly from code.
+    """
+    # Resolve gt_url from either parameter
+    if gt_url is None and ground_truth_url is not None:
+        gt_url = [ground_truth_url]
+    elif isinstance(gt_url, str):
+        gt_url = [gt_url]
+    elif gt_url is None:
+        raise ValueError("Either 'gt_url' or 'ground_truth_url' must be provided.")
+
     user_metadata = initialize_user_metadata(timezone, location, timestamp)
     eval_target = get_import_path(StreetEasyUrlMatch)
     eval_config = {"_target_": eval_target, "gt_url": gt_url}
@@ -1012,6 +1051,39 @@ if __name__ == "__main__":
             "Amenity alias: fitness → gym",
             "https://streeteasy.com/for-sale/manhattan/amenities:gym",
             "https://streeteasy.com/for-sale/manhattan/amenities:fitness",
+        )
+
+        # ================================================================
+        # 7b. OPT_AMENITIES (Must-have toggle OFF, Chrome-Verified ✅)
+        # ================================================================
+        print("\n✨ 7b. Optional Amenities — opt_amenities: prefix (Chrome-Verified)")
+        print("-" * 40)
+
+        run_test(
+            "opt_amenities:parking matches amenities:parking",
+            "https://streeteasy.com/for-sale/brooklyn/amenities:parking",
+            "https://streeteasy.com/for-sale/brooklyn/opt_amenities:parking",
+        )
+        run_test(
+            "opt_amenities:doorman,gym matches amenities:doorman,gym",
+            "https://streeteasy.com/for-sale/manhattan/amenities:doorman,gym",
+            "https://streeteasy.com/for-sale/manhattan/opt_amenities:doorman,gym",
+        )
+        run_test(
+            "amenities:parking matches opt_amenities:parking (reverse)",
+            "https://streeteasy.com/for-sale/brooklyn/opt_amenities:parking",
+            "https://streeteasy.com/for-sale/brooklyn/amenities:parking",
+        )
+        run_test(
+            "opt_amenities with other filters",
+            "https://streeteasy.com/for-sale/brooklyn/type:D1|beds:2|amenities:parking",
+            "https://streeteasy.com/for-sale/brooklyn/type:D1|beds:2|opt_amenities:parking",
+        )
+        run_test(
+            "opt_amenities does NOT match different amenity",
+            "https://streeteasy.com/for-sale/brooklyn/opt_amenities:parking",
+            "https://streeteasy.com/for-sale/brooklyn/opt_amenities:gym",
+            expected_match=False,
         )
 
         # ================================================================
