@@ -55,6 +55,7 @@ class HomesUrlMatch(BaseMetric):
     async def update(self, *, url: Optional[str] = None, **kwargs) -> None:
         if url:
             self._agent_url = url
+            
 
     async def compute(self) -> HomesVerifierResult:
         if not self._agent_url:
