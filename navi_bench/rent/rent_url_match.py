@@ -250,7 +250,7 @@ def generate_task_config(
     task: str,
     location: str,
     timezone: str,
-    gt_urls: list[str],
+    gt_urls: list[list[str]],
 ) -> BaseTaskConfig:
     tz_info = ZoneInfo(timezone)
     timestamp = int(datetime.now(tz_info).timestamp())
