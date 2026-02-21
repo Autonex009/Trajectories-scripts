@@ -30,14 +30,20 @@ class HomesUrlMatch(BaseMetric):
 
     def __init__(
         self,
-        gt_urls: Union[str, List[str]],
+        gt_urls: Union[str, List[str], List[List[str]]],
         *,
         strict_location: bool = True,
         strict_filters: bool = True
     ):
-        # Handle both single string and list of strings
+        # 1. Handle single string (e.g., "http...")
         if isinstance(gt_urls, str):
             self.gt_urls = [gt_urls]
+            
+        # 2. Handle List of Lists (The navi_bench pipeline format)
+        elif len(gt_urls) > 0 and isinstance(gt_urls[0], list):
+            self.gt_urls = [url for sublist in gt_urls for url in sublist]
+            
+        # 3. Handle flat 1D list (Your test script format)
         else:
             self.gt_urls = gt_urls
             
