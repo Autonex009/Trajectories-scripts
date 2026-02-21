@@ -322,7 +322,7 @@ def generate_task_config(
     timestamp = int(datetime.now(tz_info).timestamp())
     user_metadata = UserMetadata(location=location, timezone=timezone, timestamp=timestamp)
 
-    eval_target = get_import_path(RentUrlMatch)
+    eval_target = get_import_path(HomesUrlMatch)
     eval_config = {"_target_": eval_target, "gt_urls": gt_urls}
 
     return BaseTaskConfig(url=url, task=task, user_metadata=user_metadata, eval_config=eval_config)
