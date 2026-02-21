@@ -1,5 +1,6 @@
 import json
 import asyncio
+import csv
 import sys
 from pathlib import Path
 from typing import List
@@ -11,14 +12,36 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent))
     from homes_url_match import HomesUrlMatch
 
-async def run_verification_tests(json_path: str):
-    print(f"📂 Loading tasks from: {json_path}")
+async def run_verification_tests(file_path: str):
+    print(f"📂 Loading tasks from: {file_path}")
+    
+    tasks = []
+    path_obj = Path(file_path)
     
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            tasks = json.load(f)
+        if path_obj.suffix == '.json':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                tasks = json.load(f)
+                
+        elif path_obj.suffix == '.csv':
+            with open(file_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    # Parse the JSON string stored inside the CSV column
+                    config = json.loads(row.get("task_generation_config_json", "{}"))
+                    tasks.append({
+                        "task_id": row.get("task_id", "Unknown ID"),
+                        "task_generation_config_json": config
+                    })
+        else:
+            print(f"❌ Error: Unsupported file format '{path_obj.suffix}'. Please provide a .json or .csv file.")
+            return
+            
     except FileNotFoundError:
-        print("❌ Error: JSON file not found.")
+        print(f"❌ Error: File '{file_path}' not found.")
+        return
+    except json.JSONDecodeError as e:
+        print(f"❌ Error decoding JSON: {e}")
         return
 
     total_tests = 0
@@ -82,3 +105,4 @@ async def run_verification_tests(json_path: str):
 if __name__ == "__main__":
     # Assumes 'homes_tasks.json' is in the same directory
     asyncio.run(run_verification_tests("homes/homes_tasks.json"))
+    # asyncio.run(run_verification_tests("homes/homes_tasks.csv"))

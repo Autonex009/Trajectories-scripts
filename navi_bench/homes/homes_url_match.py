@@ -37,6 +37,7 @@ class HomesUrlMatch(BaseMetric):
     ):
         # 1. Handle single string (e.g., "http...")
         if isinstance(gt_urls, str):
+            print("Just a String")
             self.gt_urls = [gt_urls]
             
         # 2. Handle List of Lists (The navi_bench pipeline format)
@@ -316,7 +317,7 @@ def generate_task_config(
     task: str,
     location: str,
     timezone: str,
-    gt_urls: list[list[str]],
+    gt_urls: list[str],
 ) -> BaseTaskConfig:
     tz_info = ZoneInfo(timezone)
     timestamp = int(datetime.now(tz_info).timestamp())
