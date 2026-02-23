@@ -37,7 +37,6 @@ class HomesUrlMatch(BaseMetric):
     ):
         # 1. Handle single string (e.g., "http...")
         if isinstance(gt_urls, str):
-            print("Just a String")
             self.gt_urls = [gt_urls]
             
         # 2. Handle List of Lists (The navi_bench pipeline format)
