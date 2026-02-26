@@ -38,13 +38,14 @@ Instead of string matching, the script:
 │  │              _parse_realtor_url()                            │       │
 │  │  1. Lowercase & strip whitespace                            │       │
 │  │  2. URL decode                                               │       │
-│  │  3. Detect search type from first path segment              │       │
-│  │  4. Extract location (City_ST, ZIP, or Neighborhood)         │       │
-│  │  5. Parse remaining segments as filters                     │       │
-│  │  6. Normalize property types (20+ aliases)                  │       │
-│  │  7. Normalize prices (500k → 500000, 1m → 1000000)         │       │
-│  │  8. Expand show flags                                       │       │
-│  │  9. Ignore sort/pagination segments                          │       │
+│  │  3. Parse path ONLY (query string ignored)                  │       │
+│  │  4. Detect search type from first path segment              │       │
+│  │  5. Extract location (City_ST, ZIP, or Neighborhood)         │       │
+│  │  6. Parse remaining segments as filters                     │       │
+│  │  7. Normalize property types (20+ aliases)                  │       │
+│  │  8. Normalize prices (500k → 500000, 1m → 1000000)         │       │
+│  │  9. Expand show flags                                       │       │
+│  │  10. Ignore sort/pagination segments                         │       │
 │  └─────────────────────────────────────────────────────────────┘       │
 │          │                                    │                         │
 │          ▼                                    ▼                         │
@@ -109,7 +110,12 @@ url = unquote(url)           # URL decode %20 etc.
 # Add protocol if missing
 if not url.startswith(("http://", "https://")):
     url = "https://" + url
+
+parsed = urlparse(url)
+path = parsed.path.strip("/")  # Query string is IGNORED entirely
 ```
+
+> **Important**: The parser uses `parsed.path` only. Query parameters like `?view=map`, `?layer=Flood`, `?schools_pin=true`, and `?amenities_pin=true` are purely visual and are automatically discarded.
 
 ### Step 2: Detect Search Type
 
@@ -315,7 +321,45 @@ GT: https://www.realtor.com/realestateandhomes-search/San-Francisco_CA/show-rece
 
 ---
 
-## 8. Extensibility
+## 8. Query String Handling
+
+Realtor.com appends query parameters for map interactions. These are **purely visual** and do not affect search results:
+
+```python
+# These query params are all IGNORED by the parser:
+# ?view=map                                    → Map/list toggle
+# ?pos=37.89,-122.55,37.73,-122.26,11.88       → Map viewport
+# ?layer=Flood                                 → Map overlay
+# ?schools_pin=true                            → School markers
+# ?neighborhood_pin=true                       → Neighborhood markers
+# ?amenities_pin=true                          → Amenity markers
+
+# The parser uses urlparse(url).path only, so all query params are discarded.
+```
+
+---
+
+## 9. Testing
+
+All tests live in a dedicated external file — the verifier module contains zero inline tests.
+
+```bash
+python navi_bench/realtor/test_realtor_rigorous.py
+```
+
+### Test Suite: 232 tests across 23 categories
+
+- **CSV Self-Match** (74 tests) — every benchmark GT URL matches itself
+- **Basic Filters** — beds, baths, price, types, locations, show flags
+- **Advanced Filters** — sqft, lot, age, HOA, DOM, radius, sold-within
+- **Equivalences** — sold-homes↔show-recently-sold, open-houses↔show-open-house
+- **EXTREME Combos** — 5-8 simultaneous filters, scrambled orders, aliases + abbreviations
+- **Negative Tests** — wrong values, missing filters, cross-search-type mismatches
+- **Edge Cases** — case insensitivity, map query params, trailing slashes, protocol variations
+
+---
+
+## 10. Extensibility
 
 ### Adding New Property Type Aliases
 ```python
@@ -348,5 +392,5 @@ if seg.startswith("new-prefix-"):
 
 ---
 
-**Last Updated**: 2026-02-17
-**Implementation Version**: 2.0
+**Last Updated**: 2026-02-26
+**Implementation Version**: 3.0 (Tests externalized, query param handling documented)

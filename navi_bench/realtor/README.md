@@ -39,6 +39,7 @@ This script handles Realtor.com's **path-segment based** URL structure where sea
 | Filter Order Independence | All permutations handled | ✅ |
 | Case Insensitivity | Lowercase normalization | ✅ |
 | Sort/Pagination Ignored | `sby-*`, `pg-*` stripped | ✅ |
+| Query Params Ignored | Map view, layers, schools, amenities pins stripped | ✅ |
 | Extra Filters Allowed | Agent can have MORE filters than GT | ✅ |
 | Multiple GT URLs | Supports multiple acceptable answers | ✅ |
 
@@ -143,30 +144,42 @@ evaluator = RealtorUrlMatch(
 
 ## 6. Running Tests
 
+All tests live in a dedicated file — the verifier module itself contains no inline tests.
+
 ### Command
 
 ```bash
 cd /path/to/project
-python -m navi_bench.realtor.realtor_url_match
+python navi_bench/realtor/test_realtor_rigorous.py
 ```
 
 ### Expected Output
 
 ```
-================================================================================
-REALTOR.COM URL VERIFIER - COMPREHENSIVE EDGE CASE TEST SUITE
-================================================================================
+======================================================================
+RIGOROUS REALTOR.COM VERIFIER TEST SUITE
+Zero tolerance for failures - client delivery verification
+======================================================================
 
-90+ tests across 21 categories...
+232 tests across 23 categories...
 
-================================================================================
-FINAL RESULTS
-================================================================================
-Total Tests: 90+
-Passed: ALL
-Success Rate: 100.0%
-================================================================================
+======================================================================
+FINAL RESULTS: 232/232 tests passed (100.0%)
+ALL TESTS PASSED - READY FOR CLIENT
+======================================================================
 ```
+
+### Test Categories (23)
+
+| # | Category | Tests |
+|---|----------|------:|
+| 1 | CSV Self-Match | 74 |
+| 2-4 | Search Types, Locations, Basic Filters | 27 |
+| 5-7 | Property Types/Aliases, Show Flags, Advanced Filters | 41 |
+| 8-12 | Order Independence, Case/Protocol, Sort/Pagination, Equivalences, Rental Aliases | 21 |
+| 13-15 | Extra Filters, Rental Filters, Query Params | 19 |
+| 16-22 | **EXTREME** Multi-Filter Combos (5-8 filters, scrambled, aliases, negatives) | 47 |
+| 23 | Cross-Search-Type Negatives | 3 |
 
 ---
 
@@ -175,8 +188,10 @@ Success Rate: 100.0%
 | Document | Description |
 |----------|-------------|
 | [README.md](./README.md) | This file — overview and usage |
-| [COVERAGE.md](./COVERAGE.md) | All 61+ filters with URL formats and verification status |
+| [COVERAGE.md](./COVERAGE.md) | All 65+ filters with URL formats and verification status |
 | [HOW_IT_WORKS.md](./HOW_IT_WORKS.md) | Technical algorithm deep dive |
+| [test_realtor_rigorous.py](./test_realtor_rigorous.py) | 232-test rigorous verification suite |
+| [realtor_benchmark_tasks.csv](./realtor_benchmark_tasks.csv) | 74 benchmark tasks (30 basic + 44 complex) |
 
 ---
 
@@ -184,15 +199,16 @@ Success Rate: 100.0%
 
 | Metric | Value |
 |--------|-------|
-| Total Lines of Code | 1400+ |
+| Verifier Lines of Code | ~750 |
 | Property Type Aliases | 20+ |
-| Show Flag Types | 8+ |
+| Show Flag Types | 10+ |
 | Filter Categories | 15+ |
-| Inline Test Cases | 90+ |
+| External Test Cases | 232 (23 categories) |
+| Benchmark CSV Tasks | 74 (30 basic + 44 complex, 3–8 filters) |
 | Test Pass Rate | 100% |
-| Browser Verification Sessions | 2 |
+| Browser Verification Sessions | 3 |
 
 ---
 
-**Last Updated**: 2026-02-17
-**Implementation Version**: 2.0 (Chrome-Verified)
+**Last Updated**: 2026-02-26
+**Implementation Version**: 3.0 (Tests externalized, extreme benchmark tasks)
