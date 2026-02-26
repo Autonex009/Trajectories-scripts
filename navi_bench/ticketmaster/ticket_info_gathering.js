@@ -28,15 +28,22 @@
         price: (text) => {
             try {
                 if (!text) return null;
-                // TM often formats as "$125.00 ea" or includes "+ Fees"
-                let clean = text.replace(/[₹€£$]/g, '').replace(/^(INR|USD|EUR|GBP)\s*/i, '').replace(/ea\./i, '').replace(/ea/i, '').trim();
                 
-                let match = clean.match(/([\d,]+(?:\.\d{2})?)/);
+                // Specifically hunt for currency symbols to avoid accidentally grabbing Section/Row numbers
+                let match = text.match(/(?:[$£€₹]|USD|EUR|GBP|INR)\s*([\d,]+(?:\.\d{2})?)/i);
                 if (match) return parseFloat(match[1].replace(/,/g, ""));
                 
-                match = clean.match(/([\d.]+(?:,\d{2})?)/);
-                return match ? parseFloat(match[1].replace(/\./g, "").replace(",", ".")) : null;
+                // Fallback for Euro formatting (1.234,56)
+                match = text.match(/(?:[$£€₹]|USD|EUR|GBP|INR)\s*([\d.]+(?:,\d{2})?)/i);
+                if (match) return parseFloat(match[1].replace(/\./g, "").replace(",", "."));
+
+                // Fallback for clean strings passed directly from slider inputs
+                let clean = text.replace(/[₹€£$]/g, '').replace(/^(INR|USD|EUR|GBP)\s*/i, '').replace(/ea\./i, '').replace(/ea/i, '').replace(/\+/g, '').trim();
+                match = clean.match(/^([\d,]+(?:\.\d{2})?)$/);
+                if (match) return parseFloat(match[1].replace(/,/g, ""));
+                
             } catch (e) { return null; }
+            return null;
         },
 
         ticketCount: (text) => {
@@ -217,15 +224,38 @@
 
         ticketListings: () => {
             const collected = [];
+            let eventNameContext = "";
             
-            // Target the ticket list panel - covering standard lists, Quick Picks, and test IDs
+            try {
+                const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+                for (const s of scripts) {
+                    const data = JSON.parse(s.textContent);
+                    const graph = data["@graph"] || [data];
+                    const ev = graph.find(i => (Array.isArray(i["@type"]) ? i["@type"] : [i["@type"] || ""]).some(t=>t.toLowerCase().includes("event")));
+                    if (ev && ev.name) { eventNameContext = ev.name; break; }
+                }
+            } catch(e){}
+
+            if (!eventNameContext) {
+                const header = document.querySelector('[data-testid="event-detail-header"] h1, [data-testid="event-detail-header"] h6, h1');
+                eventNameContext = getText(header) || "";
+            }
+
+            if (!eventNameContext) {
+                const match = url.match(/\/([a-z0-9-]+)-tickets/i);
+                if (match) eventNameContext = match[1].replace(/-/g, ' ');
+            }
+
             const rows = document.querySelectorAll(
+                '#list-view li, ' +
+                'li[role="menuitem"], ' +
                 'li[data-bdd*="quick-picks-list-item"], ' +
                 'li[data-price], ' +
                 'li[data-bdd*="list-item-primary"], ' +
                 'li[aria-label*="Sec"], ' +
                 '[data-testid="offer-card"], ' +
-                'div[class*="ticket-card"]'
+                'div[class*="ticket-card"], ' +
+                '[role="listitem"]'
             );
 
             rows.forEach(row => {
@@ -233,21 +263,21 @@
                     const rowText = getText(row);
                     if (!rowText) return;
 
-                    // 1. Grab Price (Prioritize the data-price attribute, then visible text)
-                    const priceAttr = row.getAttribute('data-price');
-                    const priceNode = row.querySelector('[data-bdd="quick-pick-price-button"], [class*="price"]');
-                    const priceText = priceNode ? getText(priceNode) : null;
-                    
-                    const extractedPrice = Parsers.price(priceAttr) || Parsers.price(priceText) || Parsers.price(rowText);
+                    const listingId = row.getAttribute('data-listing-id') || row.getAttribute('data-index');
+                    const rawPrice = row.getAttribute('data-price');
+                    const isSold = row.getAttribute('data-is-sold') === "1";
 
-                    // Skip merch/ad slots (like PayPal Buy Now Pay Later) that have no price
+                    const priceNode = row.querySelector('[data-bdd="quick-pick-price-button"], [class*="price"], span[class*="Price"]');
+                    const priceText = priceNode ? getText(priceNode) : null;
+                    const extractedPrice = Parsers.price(rawPrice) || Parsers.price(priceText) || Parsers.price(rowText);
+
                     if (!extractedPrice) return;
 
-                    // 2. Section & Row (Grabbed from the aria-label to prevent messy regex parsing)
-                    const descNode = row.querySelector('[data-bdd="quick-pick-item-desc"]');
-                    const descText = descNode ? (descNode.getAttribute('aria-label') || getText(descNode)) : rowText;
+                    // Aggregate all hidden accessibility text and visible tags to guarantee we find the section/row
+                    const hiddenTextNodes = Array.from(row.querySelectorAll('[class*="VisuallyHidden"]')).map(n => n.textContent).join(' ');
+                    const descNode = row.querySelector('[data-bdd="quick-pick-item-desc"], [class*="description"], [class*="Section"]');
+                    const descText = (descNode ? (descNode.getAttribute('aria-label') || getText(descNode)) : "") + " " + hiddenTextNodes + " " + rowText;
 
-                    // 3. Ticket Type (Standard vs Resale vs VIP)
                     const isResaleBranding = row.querySelector('[data-bdd*="resale-branding"]');
                     const typeNode = row.querySelector('[data-bdd="branding-ticket-text"]');
                     const typeText = typeNode ? getText(typeNode) : rowText;
@@ -261,14 +291,17 @@
 
                     collected.push({
                         source: "dom_ticket_listing",
-                        eventName: getText(document.querySelector('h1'))?.toLowerCase(), 
+                        listingId: listingId,
+                        eventName: eventNameContext.toLowerCase(), 
                         price: extractedPrice,
-                        section: extractByPattern(descText, {s: /(?:Sec|Section)\s*([A-Za-z0-9]+)/i}),
-                        row: extractByPattern(descText, {r: /Row\s*([A-Za-z0-9]+)/i}),
-                        seat: extractByPattern(rowText, {st: /Seat\s*([\d\-,\s]+)/i}),
+                        // FIXED: Added word boundaries (\b) so "Sec" doesn't partially match "Section"
+                        section: extractByPattern(descText, {s: /(?:\bSection\b|\bSec\b)\s+([A-Za-z0-9\s]+?)(?=\s*(?:[•·,:-]|\bRow\b|$))/i}),
+                        row: extractByPattern(descText, {r: /\bRow\s+([A-Za-z0-9]+)/i}),
+                        seat: extractByPattern(rowText, {st: /\bSeats?\s*([\d\-,\s]+)/i}),
                         isVIP: ticketType === 'vip',
+                        isParkingPass: /parking/i.test(rowText),
                         ticketType: ticketType,
-                        availabilityStatus: 'available',
+                        availabilityStatus: isSold ? 'sold_out' : 'available',
                         info: rowText
                     });
                 } catch (e) { console.error('Ticket row parse error', e); }
@@ -380,7 +413,7 @@
         const seen = new Set();
         
         scraped.forEach(item => {
-            const key = `${item.eventName}-${item.date || 'nodate'}-${item.section || 'nosection'}-${item.source}`;
+            const key = `${item.eventName}-${item.date || 'nodate'}-${item.section || 'nosection'}-${item.row || 'norow'}-${item.price || 'noprice'}-${item.source}`;
             if (!seen.has(key)) {
                 seen.add(key);
                 

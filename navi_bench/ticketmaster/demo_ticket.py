@@ -129,12 +129,12 @@ SCENARIOS: list[TaskScenario] = [
         url="https://www.ticketmaster.com/",
         task_prompt=(
             "Search for Hamilton theater tickets. "
-            "Navigate to an event page and find tickets under $150."
+            "Navigate to an event page and find tickets under $350."
         ),
         queries=[[{
             "event_names": ["hamilton"],
             "event_categories": ["theater", "arts"],
-            "max_price": 150.0,
+            "max_price": 350.0,
             "require_available": True,
         }]],
         location="United States",

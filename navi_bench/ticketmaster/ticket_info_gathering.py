@@ -8,6 +8,7 @@ import functools
 import itertools
 import random
 import re
+import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Literal
@@ -152,7 +153,6 @@ class TicketmasterInfoGathering(BaseMetric):
     
     def attach_to_context(self, context) -> None:
         """Attach automatic navigation tracking to a browser context."""
-        import asyncio
         
         async def track_page(page) -> None:
             page_id = id(page)
@@ -173,7 +173,6 @@ class TicketmasterInfoGathering(BaseMetric):
             logger.info(f"Tracking attached to TM page: {page.url[:60]}...")
         
         for page in context.pages:
-            import asyncio
             asyncio.create_task(track_page(page))
         
         context.on("page", lambda p: asyncio.create_task(track_page(p)))
@@ -191,36 +190,40 @@ class TicketmasterInfoGathering(BaseMetric):
         elif "Pardon the Interruption" in content or "sec-text-container" in content:
             logger.error("Agent has been blocked by Ticketmaster PerimeterX/DataDome.")
 
-        # 2. Wait for TM specific elements
+        # 2. Wait for TM specific elements (Non-blocking)
         if "/event/" in url:
             try:
-                # Wait explicitly for the list items to attach to the DOM
                 await page.wait_for_selector(
-                    'li[data-price], #quickpicks-listings, [data-bdd="quick-picks-list"], [data-testid="offer-card"], [class*="ticket-card"]' \
-                    '[data-testid="offer-card"], [class*="ticket-card"], #map-container, [data-bdd="quick-picks-list"], ul[aria-label="Ticket List"]',
+                    'li[data-price], #list-view li, [data-bdd*="list-item"]',
                     state="attached",
-                    timeout=15000
-                )
-                # Give React 1 second to fully hydrate the text inside the elements
-                await page.wait_for_timeout(1000)
-            except Exception:
-                logger.info("No TM ticket listings found yet, proceeding anyway")
-
-                
-        
-        elif "/search" in url or "/discover" in url:
-            try:
-                # Wait for TM event list items
-                await page.wait_for_selector(
-                    '[data-testid="event-list-item"]',
                     timeout=10000
                 )
+                await page.wait_for_timeout(1000) # Hydration buffer
             except Exception:
-                logger.info("No TM search grid found, proceeding anyway")
+                pass # Fail silently, we will scrape frames anyway
 
-        # 3. RUN JS SCRAPER
-        infos: list[InfoDict] = await page.evaluate(self.js_script)
+        # 3. RUN JS SCRAPER ACROSS ALL FRAMES
+        all_frame_infos: list[InfoDict] = []
+        for frame in page.frames:
+            try:
+                frame_infos = await frame.evaluate(self.js_script)
+                if frame_infos and isinstance(frame_infos, list):
+                    all_frame_infos.extend(frame_infos)
+            except Exception:
+                pass # Ignore cross-origin frame access errors
         
+        # Deduplicate results across frames
+        unique_infos = []
+        seen_keys = set()
+        for info in all_frame_infos:
+            # Create a unique signature for each ticket to prevent double-counting
+            key = f"{info.get('eventName')}-{info.get('date')}-{info.get('section')}-{info.get('row')}-{info.get('price')}-{info.get('source')}"
+            if key not in seen_keys:
+                seen_keys.add(key)
+                unique_infos.append(info)
+        
+        infos = unique_infos
+
         # =====================================================================
         # DEBUG: SCRAPING STAGE BREAKDOWN
         # =====================================================================
@@ -265,7 +268,6 @@ class TicketmasterInfoGathering(BaseMetric):
         page_type = infos[0].get("pageType", "unknown") if infos else "unknown"
         anti_bot = infos[0].get("antiBotStatus", "unknown") if infos else "unknown"
 
-        logger.info(f"Ticketmaster Gathering -> Type: {page_type} | AntiBot: {anti_bot} | Infos: {len(infos)}")
         self._all_infos.append(infos)
         
         base_url = url.split("?")[0]
