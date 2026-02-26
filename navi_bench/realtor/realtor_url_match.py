@@ -306,8 +306,6 @@ class RealtorUrlMatch(BaseMetric):
                 sold_match = (
                     (agent_parts["search_type"] == "sold" and gt_is_sold)
                     or (gt_parts["search_type"] == "sold" and agent_is_sold)
-                    or (agent_is_sold and gt_is_sold)
-                    or (agent_parts["search_type"] == "sold" and gt_parts["search_type"] == "sold")
                 )
 
                 # --- Open houses equivalence ---
@@ -323,8 +321,6 @@ class RealtorUrlMatch(BaseMetric):
                 open_match = (
                     (agent_parts["search_type"] == "open_houses" and gt_is_open)
                     or (gt_parts["search_type"] == "open_houses" and agent_is_open)
-                    or (agent_is_open and gt_is_open)
-                    or (agent_parts["search_type"] == "open_houses" and gt_parts["search_type"] == "open_houses")
                 )
 
                 if not (sold_match or open_match):
@@ -453,6 +449,15 @@ class RealtorUrlMatch(BaseMetric):
                     new = set(value.split(","))
                     merged = sorted(existing | new)
                     result["filters"]["type"] = ",".join(merged)
+                # Handle multiple features-* segments (merge codes)
+                elif key == "features" and "features" in result["filters"]:
+                    existing = result["filters"]["features"]
+                    # Sort concatenated feature codes for order-independent comparison
+                    merged_codes = "".join(sorted(set(
+                        [existing[i:i+2] for i in range(0, len(existing), 2)] +
+                        [value[i:i+2] for i in range(0, len(value), 2)]
+                    )))
+                    result["filters"]["features"] = merged_codes
                 else:
                     result["filters"][key] = value
 
@@ -603,6 +608,15 @@ class RealtorUrlMatch(BaseMetric):
         if seg.startswith("with_"):
             return seg, "true"
 
+        # 19. Standalone rental pet/amenity filters (no prefix)
+        standalone_filters = {
+            "dog-friendly", "cat-friendly", "pet-friendly",
+            "laundry", "dishwasher", "parking", "furnished",
+            "income-restricted", "senior-living", "short-term",
+        }
+        if seg in standalone_filters:
+            return seg, "true"
+
         # Unknown segment — still record it
         logger.debug(f"Unknown filter segment: {seg}")
         return seg, "true"
@@ -699,6 +713,28 @@ class RealtorUrlMatch(BaseMetric):
         raw = raw.strip().replace(",", "")
         return raw
 
+    def _normalize_range_value(self, val: str, prefix: str = "", suffix: str = "") -> str:
+        """
+        Normalize a range value for comparison, handling:
+        - Single value ↔ range equivalence
+        - suffix='na': '2500' → '2500-na' (sqft/lot: "at least N")
+        - prefix='0': '10' → '0-10' (age: "within N years")
+        """
+        val = val.strip().replace(",", "")
+        # If already a range (contains hyphen), return as-is
+        if "-" in val:
+            return val
+        # Single numeric value: expand to range
+        try:
+            int(val)
+            if prefix:
+                return f"{prefix}-{val}"
+            elif suffix:
+                return f"{val}-{suffix}"
+            return val
+        except ValueError:
+            return val
+
     def _filter_values_match(self, key: str, agent_val: str, gt_val: str) -> bool:
         """
         Compare two filter values, accounting for:
@@ -719,6 +755,25 @@ class RealtorUrlMatch(BaseMetric):
         # Price comparison: normalize both and compare
         if key == "price":
             return self._normalize_price_value(agent_val) == self._normalize_price_value(gt_val)
+
+        # HOA comparison: normalize both and compare
+        if key == "hoa":
+            return self._normalize_price_value(agent_val) == self._normalize_price_value(gt_val)
+
+        # Range filters: handle single-value ↔ range equivalence
+        # sqft/lot: single value N means "at least N" → N-na
+        # age: single value N means "built within N years" → 0-N
+        if key in ("sqft", "lot"):
+            a_norm = self._normalize_range_value(agent_val, suffix="na")
+            g_norm = self._normalize_range_value(gt_val, suffix="na")
+            if a_norm == g_norm:
+                return True
+
+        if key == "age":
+            a_norm = self._normalize_range_value(agent_val, prefix="0")
+            g_norm = self._normalize_range_value(gt_val, prefix="0")
+            if a_norm == g_norm:
+                return True
 
         # Boolean equivalence
         bool_true = {"true", "1", "yes", "on"}
