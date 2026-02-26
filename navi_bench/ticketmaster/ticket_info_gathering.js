@@ -53,15 +53,24 @@
                 const clean = text.toLowerCase().trim();
                 
                 // ISO format YYYY-MM-DD
-                let match = text.match(/(\d{4})-(\d{2})-(\d{2})/);
+                let match = clean.match(/(\d{4})-(\d{2})-(\d{2})/);
                 if (match) return match[0];
                 
-                // TM format: "Sat • Oct 24, 2026" or "Oct 24, 2026"
-                match = text.match(/(?:[a-z]{3}\s*•\s*)?([a-z]{3})\s+(\d{1,2}),?\s*(\d{4})/i);
+                // TM format: "Sat • Oct 24, 2026" or "July 11, 2026"
+                match = clean.match(/(?:[a-z]+[\s,]*[•\-|·]?\s*)?([a-z]{3})[a-z]*\s+(\d{1,2}),?\s*(\d{4})/i);
                 if (match) {
                     const months = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
-                    const m = months[match[1].toLowerCase().substring(0, 3)];
+                    const m = months[match[1].substring(0, 3)];
                     if (m) return `${match[3]}-${String(m).padStart(2,'0')}-${match[2].padStart(2,'0')}`;
+                }
+
+                // TM format missing year: "Sat • Jul 11"
+                match = clean.match(/(?:[a-z]+[\s,]*[•\-|·]?\s*)?([a-z]{3})[a-z]*\s+(\d{1,2})/i);
+                if (match) {
+                    const months = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
+                    const m = months[match[1].substring(0, 3)];
+                    const currentYear = new Date().getFullYear(); // Assume current year if missing
+                    if (m) return `${currentYear}-${String(m).padStart(2,'0')}-${match[2].padStart(2,'0')}`;
                 }
             } catch (e) { return null; }
             return null;
@@ -141,10 +150,33 @@
                 const maxSlider = document.querySelector('[aria-label*="Maximum ticket price"]');
                 let maxPriceText = maxInput ? maxInput.value : (maxSlider ? maxSlider.getAttribute('aria-valuenow') : null);
 
+                // 4. NEW: Grab Ticket Types (Standard, Resale, VIP)
+                const activeTicketTypes = [];
+                const typeCheckboxes = document.querySelectorAll('input[type="checkbox"][data-bdd="filter-modal-checkbox"]');
+                typeCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        const testId = cb.getAttribute('data-testid') || '';
+                        const val = cb.value || '';
+                        if (/resale/i.test(testId) || /resale/i.test(val)) {
+                            activeTicketTypes.push('resale');
+                        } else if (/vip/i.test(testId) || /vip/i.test(val)) {
+                            activeTicketTypes.push('vip');
+                        } else {
+                            activeTicketTypes.push('standard');
+                        }
+                    }
+                });
+
+                // 5. NEW: Grab ADA / Accessible Seating Toggle
+                const adaToggle = document.querySelector('button[data-bdd="filter-ada-toggle"], button[data-testid="filter-ada-toggle"]');
+                const isADAActive = adaToggle ? adaToggle.getAttribute('aria-checked') === 'true' : false;
+
                 return {
                     filterQuantity: selectedQuantity,
                     filterMinPrice: Parsers.price(minPriceText),
-                    filterMaxPrice: Parsers.price(maxPriceText)
+                    filterMaxPrice: Parsers.price(maxPriceText),
+                    filterTicketTypes: activeTicketTypes.length > 0 ? activeTicketTypes : null,
+                    filterADA: isADAActive
                 };
             } catch (e) { 
                 return {}; 
@@ -189,6 +221,7 @@
             // Target the ticket list panel - covering standard lists, Quick Picks, and test IDs
             const rows = document.querySelectorAll(
                 'li[data-bdd*="quick-picks-list-item"], ' +
+                'li[data-price], ' +
                 'li[data-bdd*="list-item-primary"], ' +
                 'li[aria-label*="Sec"], ' +
                 '[data-testid="offer-card"], ' +
@@ -200,23 +233,31 @@
                     const rowText = getText(row);
                     if (!rowText) return;
 
-                    // 1. Try to grab the exact price from Quick Pick attributes or specific spans
+                    // 1. Grab Price (Prioritize the data-price attribute, then visible text)
                     const priceAttr = row.getAttribute('data-price');
-                    const priceNode = row.querySelector('[data-bdd="quick-pick-price-button"]');
+                    const priceNode = row.querySelector('[data-bdd="quick-pick-price-button"], [class*="price"]');
                     const priceText = priceNode ? getText(priceNode) : null;
                     
                     const extractedPrice = Parsers.price(priceAttr) || Parsers.price(priceText) || Parsers.price(rowText);
 
-                    // Skip rows that don't have a price (like the "Buy Now, Pay Later" PayPal merch slot)
+                    // Skip merch/ad slots (like PayPal Buy Now Pay Later) that have no price
                     if (!extractedPrice) return;
 
-                    // 2. Try to grab exact Section/Row from the Quick Pick description span
+                    // 2. Section & Row (Grabbed from the aria-label to prevent messy regex parsing)
                     const descNode = row.querySelector('[data-bdd="quick-pick-item-desc"]');
                     const descText = descNode ? (descNode.getAttribute('aria-label') || getText(descNode)) : rowText;
 
-                    // 3. Check exact Ticket Type branding if available
+                    // 3. Ticket Type (Standard vs Resale vs VIP)
+                    const isResaleBranding = row.querySelector('[data-bdd*="resale-branding"]');
                     const typeNode = row.querySelector('[data-bdd="branding-ticket-text"]');
                     const typeText = typeNode ? getText(typeNode) : rowText;
+                    
+                    let ticketType = 'standard';
+                    if (isResaleBranding || /Verified Resale/i.test(typeText) || /resale/i.test(rowText)) {
+                        ticketType = 'resale';
+                    } else if (/VIP/i.test(typeText) || /VIP/i.test(rowText)) {
+                        ticketType = 'vip';
+                    }
 
                     collected.push({
                         source: "dom_ticket_listing",
@@ -225,8 +266,8 @@
                         section: extractByPattern(descText, {s: /(?:Sec|Section)\s*([A-Za-z0-9]+)/i}),
                         row: extractByPattern(descText, {r: /Row\s*([A-Za-z0-9]+)/i}),
                         seat: extractByPattern(rowText, {st: /Seat\s*([\d\-,\s]+)/i}),
-                        isVIP: /VIP/i.test(rowText),
-                        ticketType: /Verified Resale/i.test(typeText) ? 'resale' : 'standard',
+                        isVIP: ticketType === 'vip',
+                        ticketType: ticketType,
                         availabilityStatus: 'available',
                         info: rowText
                     });
@@ -317,6 +358,13 @@
             });
         }
 
+        // 1. Find the global date/time (Borrow from LD+JSON if available, otherwise parse the Header)
+        const ldJsonItem = scraped.find(i => i.source === 'ld+json' && i.date);
+        const headerEl = document.querySelector('#edp-event-header, [data-bdd="event-header"]');
+        const headerText = headerEl ? getText(headerEl) : pageText;
+        
+        const globalDate = ldJsonItem ? ldJsonItem.date : Parsers.date(headerText);
+        const globalTime = ldJsonItem ? ldJsonItem.time : Parsers.time(headerText);
         const filters = Scraper.pageFilters();
 
         const meta = {
@@ -324,6 +372,8 @@
             antiBotStatus: Enrichment.antiBotStatus(),
             eventCategory: Enrichment.category(),
             globalStatus: Enrichment.status(pageText),
+            globalDate: globalDate,
+            globalTime: globalTime,
             ...filters // Inject the scraped filters here
         };
 
@@ -334,7 +384,6 @@
             if (!seen.has(key)) {
                 seen.add(key);
                 
-                // Inherit the global status if the specific item doesn't have a definitive one
                 let finalStatus = item.availabilityStatus;
                 if (!finalStatus || finalStatus === 'available') {
                     if (meta.globalStatus === 'sold_out' || meta.globalStatus === 'queue' || meta.globalStatus === 'presale') {
@@ -342,12 +391,22 @@
                     }
                 }
 
+                // INHERITANCE FIX: Only force the global date if we are on an actual event page.
+                // Otherwise, keep the distinct dates for individual event cards on search pages.
+                let finalDate = item.date;
+                let finalTime = item.time;
+                if (!finalDate && (meta.pageType === 'event_listing' || meta.pageType === 'checkout')) {
+                    finalDate = meta.globalDate;
+                    finalTime = meta.globalTime;
+                }
+
                 results.push({
                     ...item,
                     ...meta,
+                    date: finalDate,
+                    parsedTime: Parsers.time(finalTime || ''),
                     availabilityStatus: finalStatus,
-                    parsedTime: Parsers.time(item.time || item.date || ''),
-                    isResale: Enrichment.isResale(item.info),
+                    isResale: item.isResale !== undefined ? item.isResale : Enrichment.isResale(item.info),
                     obstructedView: Enrichment.obstructed(item.info),
                 });
             }

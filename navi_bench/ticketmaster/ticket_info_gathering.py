@@ -107,6 +107,9 @@ class InfoDict(TypedDict, total=False):
     filterMinPrice: float
     filterMaxPrice: float
 
+    filterTicketTypes: list[str]  # NEW
+    filterADA: bool               # NEW
+
 
 class FinalResult(BaseModel):
     """Final verification result."""
@@ -191,13 +194,19 @@ class TicketmasterInfoGathering(BaseMetric):
         # 2. Wait for TM specific elements
         if "/event/" in url:
             try:
-                # Wait for the interactive seat map or the offer-card list
+                # Wait explicitly for the list items to attach to the DOM
                 await page.wait_for_selector(
-                    '[data-testid="offer-card"], [class*="ticket-card"], #map-container',
-                    timeout=10000
+                    'li[data-price], #quickpicks-listings, [data-bdd="quick-picks-list"], [data-testid="offer-card"], [class*="ticket-card"]' \
+                    '[data-testid="offer-card"], [class*="ticket-card"], #map-container, [data-bdd="quick-picks-list"], ul[aria-label="Ticket List"]',
+                    state="attached",
+                    timeout=15000
                 )
+                # Give React 1 second to fully hydrate the text inside the elements
+                await page.wait_for_timeout(1000)
             except Exception:
                 logger.info("No TM ticket listings found yet, proceeding anyway")
+
+                
         
         elif "/search" in url or "/discover" in url:
             try:
@@ -223,7 +232,12 @@ class TicketmasterInfoGathering(BaseMetric):
             f_qty = infos[0].get("filterQuantity", "Any")
             f_min = infos[0].get("filterMinPrice", "Any")
             f_max = infos[0].get("filterMaxPrice", "Any")
-            logger.info(f"  [ACTIVE FILTERS] -> Qty: {f_qty} | Min: ${f_min} | Max: ${f_max}")
+            f_types = infos[0].get("filterTicketTypes")
+            f_ada = infos[0].get("filterADA", False)
+            types_str = ", ".join(f_types) if f_types else "All/Default"
+            ada_str = "Yes" if f_ada else "No"
+            
+            logger.info(f"  [ACTIVE FILTERS] -> Qty: {f_qty} | Min: ${f_min} | Max: ${f_max} | Types: [{types_str}] | ADA: {ada_str}")
             
             sources = {}
             for info in infos:
@@ -343,15 +357,15 @@ class TicketmasterInfoGathering(BaseMetric):
     def _check_multi_candidate_query(
         cls, query: MultiCandidateQuery, info: InfoDict, evidences: list[InfoDict]
     ) -> bool:
-        """Check TM-specific query constraints."""
+        """Check TM-specific query constraints against the scraped InfoDict."""
         
-        # Text based matches
+        # 1. TEXT / CATEGORY MATCHES
         if q_names := query.get("event_names"):
             if not any(q.lower() in info.get("eventName", "").lower() for q in q_names):
                 return False
 
         if q_venues := query.get("venues"):
-            if not any(q.lower() in info.get("venue", "").lower() for q in q_venues):
+            if not any(q.lower() in (info.get("venue") or "").lower() for q in q_venues):
                 return False
 
         if q_cities := query.get("cities"):
@@ -359,40 +373,102 @@ class TicketmasterInfoGathering(BaseMetric):
             if not city or not any(c.lower() in city for c in q_cities):
                 return False
 
-        # Numeric and Filter constraints
+        if q_categories := query.get("event_categories"):
+            cat = (info.get("eventCategory") or "").lower()
+            if not cat or not any(c.lower() in cat for c in q_categories):
+                return False
+
+        # 2. NUMERIC / QUANTITY CONSTRAINTS
+        ticket_count = info.get("ticketCount") or info.get("filterQuantity") or 0
         if min_tickets := query.get("min_tickets"):
-            if info.get("ticketCount", 0) < min_tickets:
+            if ticket_count < min_tickets:
+                return False
+                
+        if max_tickets := query.get("max_tickets"):
+            if ticket_count > max_tickets:
+                return False
+                
+        if quantities := query.get("ticket_quantities"):
+            if ticket_count not in quantities:
                 return False
 
+        # 3. PRICE & CURRENCY CONSTRAINTS
+        # Fallback to the slider max price if the individual ticket price is missing
+        price = info.get("price") or info.get("filterMaxPrice")
         if max_price := query.get("max_price"):
-            if info.get("price") is not None and info.get("price") > max_price:
+            if price is None or price > max_price:
+                return False
+                
+        if min_price := query.get("min_price"):
+            # Explicitly check min_price, fail if price is None
+            if price is None or price < min_price:
+                return False
+                
+        if req_currency := query.get("currency"):
+            info_currency = (info.get("currency") or "USD").lower()
+            if req_currency.lower() != info_currency:
                 return False
 
-        # Ticketmaster specific resale logic
+        # 4. SEAT LOCATION CONSTRAINTS
+        if q_sections := query.get("sections"):
+            info_sec = (info.get("section") or "").lower()
+            if not info_sec or not any(s.lower() in info_sec for s in q_sections):
+                return False
+                
+        if q_rows := query.get("rows"):
+            info_row = (info.get("row") or "").lower()
+            if not info_row or not any(r.lower() in info_row for r in q_rows):
+                return False
+
+        # 5. TICKET TYPE & RESALE CONSTRAINTS
+        if q_types := query.get("ticket_types"):
+            info_type = (info.get("ticketType") or "standard").lower()
+            if not info_type or not any(t.lower() in info_type for t in q_types):
+                return False
+
         if query.get("require_resale") is True and not info.get("isResale", False):
             return False
             
         if query.get("exclude_resale") is True and info.get("isResale", False):
             return False
 
-        # Availability logic
+        # 6. PAGE TYPE & STATUS CONSTRAINTS
+        if req_page_type := query.get("require_page_type"):
+            info_page_type = info.get("pageType", "")
+            if isinstance(req_page_type, list):
+                if info_page_type not in req_page_type:
+                    return False
+            else:
+                if info_page_type != req_page_type:
+                    return False
+
+        info_status = info.get("availabilityStatus", "").lower()
+        if req_statuses := query.get("availability_statuses"):
+            if info_status not in [s.lower() for s in req_statuses]:
+                return False
+
+        # 7. DATE, TIME & BASE AVAILABILITY
         require_available = query.get("require_available", False)
-        status = info.get("availabilityStatus", "").lower()
-        is_unavailable = status in ["sold_out", "queue", "future_sale", "cancelled"]
+        is_unavailable = info_status in ["sold_out", "queue", "future_sale", "cancelled"]
 
         if is_unavailable:
             if require_available:
                 evidences.append(info)
                 return False
             else:
-                # Still verify the date if they aren't requiring availability
                 if q_dates := query.get("dates"):
                     if info.get("date") not in q_dates:
+                        return False
+                if q_times := query.get("times"):
+                    if info.get("parsedTime") not in q_times and info.get("time") not in q_times:
                         return False
                 return True
         else:
             if q_dates := query.get("dates"):
                 if info.get("date") not in q_dates:
+                    return False
+            if q_times := query.get("times"):
+                if info.get("parsedTime") not in q_times and info.get("time") not in q_times:
                     return False
             return True
 
