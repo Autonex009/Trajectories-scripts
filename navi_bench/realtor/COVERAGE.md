@@ -438,9 +438,24 @@ Realtor.com has several page types that are **NOT property searches** and are re
 
 ---
 
-## 13. SORT & PAGINATION (IGNORED)
+## 13. QUERY PARAMETERS (IGNORED)
 
-These segments are automatically stripped by the verifier — they don't affect search results:
+The verifier parses **only the URL path** and ignores the query string. Map-related query parameters are purely visual and do not affect search results:
+
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| `view=map` | Toggle map view | `?view=map` |
+| `pos=` | Map position/bounds | `?pos=37.8,-122.5,37.7,-122.2,12` |
+| `layer=` | Map overlay layer | `?layer=Flood`, `?layer=Estimate` |
+| `schools_pin=` | Show school pins | `?schools_pin=true` |
+| `neighborhood_pin=` | Show neighborhood pins | `?neighborhood_pin=true` |
+| `amenities_pin=` | Show amenity pins | `?amenities_pin=true` |
+
+---
+
+## 14. SORT & PAGINATION (IGNORED)
+
+These path segments are automatically stripped by the verifier:
 
 | Segment | Purpose | Example |
 |---------|---------|---------|
@@ -449,12 +464,13 @@ These segments are automatically stripped by the verifier — they don't affect 
 
 ---
 
-## 14. AUTO-COMPUTED / VERIFIER BEHAVIOR
+## 15. AUTO-COMPUTED / VERIFIER BEHAVIOR
 
 | Behavior | Description |
 |----------|-------------|
 | **Sort ignored** | `sby-*` segments stripped during parsing |
 | **Pagination ignored** | `pg-*` segments stripped during parsing |
+| **Query params ignored** | Map view, layers, school/amenity pins all stripped |
 | **Extra filters allowed** | Agent URL may have MORE filters than GT (noted, not penalized) |
 | **Filter order independent** | Filters parsed into dict, order doesn't matter |
 | **Case insensitive** | All URLs lowercase-normalized |
@@ -534,7 +550,8 @@ https://www.realtor.com/realestateandhomes-search/San-Francisco_CA/show-new-cons
 | Non-Search Pages | 6 | Chrome verified (rejected) |
 | Sort/Pagination (Ignored) | 2 | Verified |
 | Sold Timeframe | 1 (4 values) | HTTP verified |
-| **TOTAL** | **65+** | |
+| Query Params (Ignored) | 6 | Browser verified |
+| **TOTAL** | **70+** | |
 
 ### Verification Status Legend
 
@@ -560,8 +577,9 @@ https://www.realtor.com/realestateandhomes-search/San-Francisco_CA/show-new-cons
 
 ---
 
-**Last Updated:** 2026-02-17
-**Version:** 2.0.0 (Chrome-Verified, with rental deep dive)
-**Total Filters Documented:** 65+
-**Test Suite:** 55+ external tests + inline tests (100% pass rate)
-**Verification Method:** Live Chrome browser testing on realtor.com (2 sessions)
+**Last Updated:** 2026-02-26
+**Version:** 3.0.0 (Tests externalized, query params documented)
+**Total Filters Documented:** 70+
+**Test Suite:** 232 external tests in `test_realtor_rigorous.py` (100% pass rate)
+**Benchmark Tasks:** 74 (30 basic + 44 complex, 3–8 filters each)
+**Verification Method:** Live Chrome browser testing on realtor.com (3 sessions)
