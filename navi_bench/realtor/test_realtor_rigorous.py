@@ -732,6 +732,48 @@ def test_cross_search_type_negatives():
 
 
 # ============================================================================
+# TEST 24: REGRESSION — show-recently-sold false positive (Bug #1 from review)
+# ============================================================================
+def test_show_recently_sold_regression():
+    print("\n" + "=" * 70)
+    print("TEST 24: REGRESSION - show-recently-sold False Positive Fix")
+    print("=" * 70)
+    r = []
+
+    # CRITICAL: GT has show-recently-sold as a filter, agent does NOT → must NOT match
+    r.append(match_test("BUG1 regression: GT has show-recently-sold, agent missing it",
+        f"{R}/SF_CA/show-recently-sold",
+        f"{R}/SF_CA", False))
+
+    # Same but with extra filters
+    r.append(match_test("BUG1 regression: GT has show-recently-sold+beds, agent missing sold flag",
+        f"{R}/SF_CA/show-recently-sold/beds-3/price-na-500000",
+        f"{R}/SF_CA/beds-3/price-na-500000", False))
+
+    # Equivalence should still work: sold-homes ↔ show-recently-sold
+    r.append(match_test("Equivalence still works: sold-homes → show-recently-sold",
+        "https://www.realtor.com/sold-homes/SF_CA",
+        f"{R}/SF_CA/show-recently-sold"))
+
+    # And the reverse
+    r.append(match_test("Equivalence still works: show-recently-sold → sold-homes",
+        f"{R}/SF_CA/show-recently-sold",
+        "https://www.realtor.com/sold-homes/SF_CA"))
+
+    # show-recently-sold on both sides (same search_type=sale) should match
+    r.append(match_test("Both have show-recently-sold → should match",
+        f"{R}/SF_CA/show-recently-sold/beds-3",
+        f"{R}/SF_CA/show-recently-sold/beds-3"))
+
+    # show-open-house same regression check
+    r.append(match_test("GT has show-open-house, agent missing it → NO",
+        f"{R}/SF_CA/show-open-house",
+        f"{R}/SF_CA", False))
+
+    return r
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 if __name__ == "__main__":
@@ -766,6 +808,7 @@ if __name__ == "__main__":
         all_results += test_extreme_edge_cases()
         all_results += test_8_filter_stress()
         all_results += test_cross_search_type_negatives()
+        all_results += test_show_recently_sold_regression()
     except Exception as e:
         print(f"\n\nFATAL ERROR: {e}")
         traceback.print_exc()
@@ -775,8 +818,12 @@ if __name__ == "__main__":
     passed = sum(all_results)
     total = len(all_results)
     failed = total - passed
-    pct = 100 * passed / total if total > 0 else 0
 
+    if total == 0:
+        print("ERROR: No tests were executed!")
+        sys.exit(1)
+
+    pct = 100 * passed / total
     print(f"FINAL RESULTS: {passed}/{total} tests passed ({pct:.1f}%)")
     if failed > 0:
         print(f"FAILURES: {failed} tests FAILED")

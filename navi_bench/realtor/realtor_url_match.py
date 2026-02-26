@@ -146,7 +146,6 @@ PROPERTY_TYPE_ALIASES = {
     # Rental type plurals (browser-verified: /apartments/ URLs auto-pluralize)
     "apartment": "apartments",
     "apartments": "apartments",
-    "condos": "condo",
 }
 
 # Show-flag aliases → canonical flag
@@ -353,8 +352,10 @@ class RealtorUrlMatch(BaseMetric):
             if agent_parts["search_type"] == "open_houses" or gt_parts["search_type"] == "open_houses":
                 equiv_flags.add("show-open-house")
             # Also remove if the flag was used for equivalence matching
+            # Guard: only strip if one side is actually the sold/open_houses path type
             if agent_filters.get("show-recently-sold") == "true" or gt_filters.get("show-recently-sold") == "true":
-                equiv_flags.add("show-recently-sold")
+                if agent_parts["search_type"] == "sold" or gt_parts["search_type"] == "sold":
+                    equiv_flags.add("show-recently-sold")
             if agent_filters.get("show-open-house") == "true" or gt_filters.get("show-open-house") == "true":
                 if agent_parts["search_type"] == "open_houses" or gt_parts["search_type"] == "open_houses":
                     equiv_flags.add("show-open-house")
