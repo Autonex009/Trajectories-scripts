@@ -148,7 +148,7 @@ PROPERTY_TYPE_ALIASES = {
     "apartments": "apartments",
 }
 
-# Show-flag aliases → canonical flag
+# Show-flag aliases -> canonical flag
 SHOW_FLAG_ALIASES = {
     "show-open-house": "open-house",
     "show-open-houses": "open-house",
@@ -171,6 +171,26 @@ SHOW_FLAG_ALIASES = {
     "show-pool": "pool",
     "show-waterfront": "waterfront",
     "show-single-story": "single-story",
+}
+
+# Realtor.com abbreviated show-flag segments (browser-verified Feb 2026)
+# These do NOT start with "show-" but map to the same canonical flags.
+SHOW_ABBREV_ALIASES = {
+    "shw-nc": "new-construction",       # shw-nc -> new construction (verified: 104 results)
+    "shw-rs": "recently-sold",          # abbreviated recently-sold
+    "shw-oh": "open-house",             # abbreviated open-house
+    "shw-fc": "foreclosure",            # abbreviated foreclosure
+    "shw-pr": "price-reduced",          # abbreviated price-reduced
+}
+
+# Soldwithin month aliases -> days (Realtor uses months internally)
+SOLDWITHIN_MONTH_TO_DAYS = {
+    "1": "30",    # 1 month  = 30 days
+    "3": "90",    # 3 months = 90 days
+    "6": "180",   # 6 months = 180 days
+    "12": "365",  # 12 months = 365 days
+    "24": "730",  # 24 months = 730 days
+    "36": "1095", # 36 months = 1095 days
 }
 
 # Segments to IGNORE during comparison (UI state, not search filters)
@@ -208,12 +228,16 @@ class RealtorUrlMatch(BaseMetric):
     - /apartments-for-rent/City_ST ↔ /apartments/City_ST
     """
 
-    def __init__(self, gt_url: str | list[str]) -> None:
+    def __init__(self, gt_urls: list[list[str]]) -> None:
+        """
+        Args:
+            gt_urls: list of list of strings, each string is a URL. The two levels of lists are
+                for "AND" -> "OR" checking logic, i.e., all the elements in the first level of the list
+                need to be covered, and at least one of the elements in the second level of each list
+                need to be covered.
+        """
         super().__init__()
-        if isinstance(gt_url, str):
-            self.gt_urls = [gt_url]
-        else:
-            self.gt_urls = gt_url
+        self.gt_urls = gt_urls
         self._found_match = False
         self._agent_url = ""
         self._matched_gt_url = ""
@@ -251,14 +275,15 @@ class RealtorUrlMatch(BaseMetric):
 
         self._agent_url = url
 
-        for gt_url in self.gt_urls:
-            match, details = self._urls_match(url, gt_url)
-            if match:
-                self._found_match = True
-                self._matched_gt_url = gt_url
-                self._match_details = details
-                logger.info(f"Match found: {url[:100]}...")
-                return
+        for gt_url_group in self.gt_urls:
+            for gt_url in gt_url_group:
+                match, details = self._urls_match(url, gt_url)
+                if match:
+                    self._found_match = True
+                    self._matched_gt_url = gt_url
+                    self._match_details = details
+                    logger.info(f"Match found: {url[:100]}...")
+                    return
 
         logger.info(f"No match found: {url[:100]}...")
 
@@ -297,18 +322,23 @@ class RealtorUrlMatch(BaseMetric):
             # 1. Compare search type (sale vs rent vs sold vs open_houses)
             if agent_parts["search_type"] != gt_parts["search_type"]:
                 # --- Sold equivalence ---
-                # /sold-homes/City ↔ /realestateandhomes-search/City/show-recently-sold
+                # /sold-homes/City <-> /realestateandhomes-search/City/show-recently-sold
+                # Also: soldwithin-N filter implies sold search type
                 agent_is_sold = (
                     agent_parts["search_type"] == "sale"
-                    and agent_parts["filters"].get("show-recently-sold") == "true"
+                    and (agent_parts["filters"].get("show-recently-sold") == "true"
+                         or "sold-within" in agent_parts["filters"])
                 )
                 gt_is_sold = (
                     gt_parts["search_type"] == "sale"
-                    and gt_parts["filters"].get("show-recently-sold") == "true"
+                    and (gt_parts["filters"].get("show-recently-sold") == "true"
+                         or "sold-within" in gt_parts["filters"])
                 )
                 sold_match = (
                     (agent_parts["search_type"] == "sold" and gt_is_sold)
                     or (gt_parts["search_type"] == "sold" and agent_is_sold)
+                    # Both are "sale" type but both have sold indicators
+                    or (agent_is_sold and gt_is_sold)
                 )
 
                 # --- Open houses equivalence ---
@@ -350,10 +380,15 @@ class RealtorUrlMatch(BaseMetric):
                 equiv_flags.add("show-recently-sold")
             if agent_parts["search_type"] == "open_houses" or gt_parts["search_type"] == "open_houses":
                 equiv_flags.add("show-open-house")
-            # BUG-4 fix: Removed dead equiv_flags block (lines 346-349 already handle this)
 
+            # Strip redundant type-apartments for rental URLs
+            # When path is /apartments/ (search_type=rent), type=apartments is implicit
             agent_f = {k: v for k, v in agent_filters.items() if k not in equiv_flags}
             gt_f = {k: v for k, v in gt_filters.items() if k not in equiv_flags}
+            if agent_parts["search_type"] == "rent":
+                agent_f = {k: v for k, v in agent_f.items() if not (k == "type" and v == "apartments")}
+            if gt_parts["search_type"] == "rent":
+                gt_f = {k: v for k, v in gt_f.items() if not (k == "type" and v == "apartments")}
 
             # Check all GT filters exist in agent with correct values
             for key, gt_val in gt_f.items():
@@ -469,12 +504,10 @@ class RealtorUrlMatch(BaseMetric):
         """Check if a path segment looks like a filter (not a location)."""
         filter_prefixes = (
             "beds-", "baths-", "price-", "type-", "sqft-",
-            "show-", "sby-", "pg-", "lot-", "age-", "year-built-",
-            "garage-", "stories-", "hoa-", "radius-",  # BUG-3 fix: removed stale "pool-" (site uses show-pool)
+            "show-", "shw-", "sby-", "pg-", "lot-", "age-", "year-built-",
+            "garage-", "stories-", "hoa-", "radius-",
             "dom-", "days-", "commute-",
-            # Sold timeframe (browser-verified Feb 2026)
-            "sold-within-",  # sold-within-7, sold-within-30, etc.
-            # Rental-specific prefixes (browser-verified)
+            "sold-within-", "soldwithin-",  # both hyphenated and non-hyphenated
             "features-",  # community amenities: features-cs (pool), features-gy (gym)
             "with_",      # unit amenities: with_inunitlaundry
         )
@@ -484,7 +517,7 @@ class RealtorUrlMatch(BaseMetric):
             "laundry", "dishwasher", "parking", "furnished",
             "income-restricted", "senior-living", "short-term",
         }
-        return any(seg.startswith(p) for p in filter_prefixes) or seg in rental_filters
+        return any(seg.startswith(p) for p in filter_prefixes) or seg in rental_filters or seg in SHOW_ABBREV_ALIASES
 
     def _normalize_location(self, location: str) -> str:
         """
@@ -521,14 +554,23 @@ class RealtorUrlMatch(BaseMetric):
             if seg.startswith(f"{ignored}-"):
                 return "", ""
 
-        # 2. Show-flag segments: show-open-house → boolean filter
+        # 2a. Abbreviated show-flags: shw-nc -> show-new-construction
+        if seg in SHOW_ABBREV_ALIASES:
+            canonical = SHOW_ABBREV_ALIASES[seg]
+            return f"show-{canonical}", "true"
+
+        # 2b. Show-flag segments: show-open-house -> boolean filter
         if seg.startswith("show-"):
             canonical = SHOW_FLAG_ALIASES.get(seg, seg.replace("show-", ""))
             return f"show-{canonical}", "true"
 
-        # 3. Type segments: type-single-family-home
+        # 3. Type segments: type-single-family-home or type-townhome,condo
         if seg.startswith("type-"):
             raw_type = seg[5:]  # Remove "type-" prefix
+            # Handle comma-separated types: type-townhome,condo
+            if "," in raw_type:
+                parts = [self._normalize_property_type(t.strip()) for t in raw_type.split(",")]
+                return "type", ",".join(sorted(parts))
             canonical_type = self._normalize_property_type(raw_type)
             return "type", canonical_type
 
@@ -580,9 +622,14 @@ class RealtorUrlMatch(BaseMetric):
             raw_garage = seg[7:]
             return "garage", raw_garage
 
-        # 13. HOA segments: hoa-na-500 or hoa-0-500
+        # 13. HOA segments: hoa-na-500, hoa-0-500, or hoa-500,known (Realtor abbreviation)
         if seg.startswith("hoa-"):
             raw_hoa = seg[4:]
+            # Handle hoa-N,known format (Realtor abbreviation for "HOA up to $N")
+            # hoa-500,known -> hoa-na-500 (means "HOA max $500, known HOA only")
+            if ",known" in raw_hoa:
+                amount = raw_hoa.replace(",known", "")
+                return "hoa", f"na-{amount}"
             return "hoa", self._normalize_price_value(raw_hoa)
 
         # 14. Days on market: dom-7 or days-7
@@ -597,10 +644,16 @@ class RealtorUrlMatch(BaseMetric):
             raw_val = seg[len(prefix):]
             return prefix.rstrip("-"), raw_val
 
-        # 16. Sold-within segments: sold-within-7, sold-within-30, etc.
+        # 16a. Sold-within segments: sold-within-7, sold-within-30, etc.
         if seg.startswith("sold-within-"):
             raw_days = seg[12:]  # Remove "sold-within-" prefix
             return "sold-within", raw_days
+
+        # 16b. Soldwithin-N (no hyphen, month-based): soldwithin-1 = 30 days
+        if seg.startswith("soldwithin-"):
+            raw_months = seg[11:]  # Remove "soldwithin-" prefix
+            days = SOLDWITHIN_MONTH_TO_DAYS.get(raw_months, raw_months)
+            return "sold-within", days
 
         # 17. Rental community amenity segments: features-cs, features-gy, etc.
         if seg.startswith("features-"):
@@ -809,7 +862,7 @@ class RealtorUrlMatch(BaseMetric):
 
 def generate_task_config(
     task: str,
-    gt_url: str | list[str],  # BUG-10 fix: accept both str and list[str]
+    gt_urls: list[list[str]],
     location: str,
     timezone: str,
     timestamp: int | None = None,
@@ -818,7 +871,7 @@ def generate_task_config(
     """Generate task configuration for Realtor.com URL matching."""
     user_metadata = initialize_user_metadata(timezone, location, timestamp)
     eval_target = get_import_path(RealtorUrlMatch)
-    eval_config = {"_target_": eval_target, "gt_url": gt_url}
+    eval_config = {"_target_": eval_target, "gt_urls": gt_urls}
     return BaseTaskConfig(
         url=url, task=task, user_metadata=user_metadata, eval_config=eval_config
     )
