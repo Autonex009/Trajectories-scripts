@@ -33,7 +33,7 @@ def run_test(name, passed, details=""):
 
 def match_test(name, gt_url, agent_url, expected=True):
     """Test if agent_url matches gt_url (or doesn't, if expected=False)."""
-    v = RealtorUrlMatch(gt_url=gt_url)
+    v = RealtorUrlMatch(gt_urls=[[gt_url]])
     match, details = v._urls_match(agent_url, gt_url)
     detail = ""
     if match != expected:
@@ -58,9 +58,10 @@ def test_csv_self_match():
         for row in csv.DictReader(f):
             tid = row["task_id"]
             cfg = json.loads(row["task_generation_config_json"])
-            gt = cfg["gt_url"]
+            gt_urls = cfg["gt_urls"]
             try:
-                v = RealtorUrlMatch(gt_url=gt)
+                v = RealtorUrlMatch(gt_urls=gt_urls)
+                gt = gt_urls[0][0]  # First URL for self-match
                 ok, det = v._urls_match(gt, gt)
                 detail = ""
                 if not ok:
