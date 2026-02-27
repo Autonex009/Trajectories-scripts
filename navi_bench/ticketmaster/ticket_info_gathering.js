@@ -413,7 +413,7 @@
         const seen = new Set();
         
         scraped.forEach(item => {
-            const key = `${item.eventName}-${item.date || 'nodate'}-${item.section || 'nosection'}-${item.row || 'norow'}-${item.price || 'noprice'}-${item.source}`;
+            const key = `${item.eventName}-${item.date || 'nodate'}-${item.section || 'nosection'}-${item.row || 'norow'}-${item.seat || 'noseat'}-${item.listingId || 'noid'}-${item.price || 'noprice'}-${item.source}`;
             if (!seen.has(key)) {
                 seen.add(key);
                 

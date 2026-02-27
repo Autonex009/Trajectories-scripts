@@ -217,7 +217,11 @@ class TicketmasterInfoGathering(BaseMetric):
         seen_keys = set()
         for info in all_frame_infos:
             # Create a unique signature for each ticket to prevent double-counting
-            key = f"{info.get('eventName')}-{info.get('date')}-{info.get('section')}-{info.get('row')}-{info.get('price')}-{info.get('source')}"
+            key = (
+                f"{info.get('eventName')}-{info.get('date')}-{info.get('section')}-"
+                f"{info.get('row')}-{info.get('seat')}-{info.get('listingId')}-"
+                f"{info.get('price')}-{info.get('source')}"
+            )
             if key not in seen_keys:
                 seen_keys.add(key)
                 unique_infos.append(info)
