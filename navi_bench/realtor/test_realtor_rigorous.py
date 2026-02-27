@@ -58,7 +58,7 @@ def test_csv_self_match():
         for row in csv.DictReader(f):
             tid = row["task_id"]
             cfg = json.loads(row["task_generation_config_json"])
-            gt = cfg["ground_truth_url"]
+            gt = cfg["gt_url"]
             try:
                 v = RealtorUrlMatch(gt_url=gt)
                 ok, det = v._urls_match(gt, gt)
@@ -750,23 +750,23 @@ def test_show_recently_sold_regression():
         f"{R}/SF_CA/show-recently-sold/beds-3/price-na-500000",
         f"{R}/SF_CA/beds-3/price-na-500000", False))
 
-    # Equivalence should still work: sold-homes ↔ show-recently-sold
-    r.append(match_test("Equivalence still works: sold-homes → show-recently-sold",
+    # Equivalence should still work: sold-homes <-> show-recently-sold
+    r.append(match_test("Equivalence still works: sold-homes -> show-recently-sold",
         "https://www.realtor.com/sold-homes/SF_CA",
         f"{R}/SF_CA/show-recently-sold"))
 
     # And the reverse
-    r.append(match_test("Equivalence still works: show-recently-sold → sold-homes",
+    r.append(match_test("Equivalence still works: show-recently-sold -> sold-homes",
         f"{R}/SF_CA/show-recently-sold",
         "https://www.realtor.com/sold-homes/SF_CA"))
 
     # show-recently-sold on both sides (same search_type=sale) should match
-    r.append(match_test("Both have show-recently-sold → should match",
+    r.append(match_test("Both have show-recently-sold -> should match",
         f"{R}/SF_CA/show-recently-sold/beds-3",
         f"{R}/SF_CA/show-recently-sold/beds-3"))
 
     # show-open-house same regression check
-    r.append(match_test("GT has show-open-house, agent missing it → NO",
+    r.append(match_test("GT has show-open-house, agent missing it -> NO",
         f"{R}/SF_CA/show-open-house",
         f"{R}/SF_CA", False))
 

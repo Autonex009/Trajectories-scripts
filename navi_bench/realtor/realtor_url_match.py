@@ -176,8 +176,7 @@ SHOW_FLAG_ALIASES = {
 # Segments to IGNORE during comparison (UI state, not search filters)
 IGNORED_SEGMENTS = {"sby", "pg"}
 
-# Rental path aliases → all map to "rent"
-RENTAL_PATH_ALIASES = {"apartments", "rentals", "apartments-for-rent", "houses-for-rent"}
+# BUG-2 fix: Removed dead RENTAL_PATH_ALIASES (was never referenced; SEARCH_TYPE_PATHS handles it)
 
 # ============================================================================
 # VERIFIER CLASS
@@ -244,6 +243,10 @@ class RealtorUrlMatch(BaseMetric):
         domain = (parsed.hostname or "").lower()
         if domain and domain not in VALID_DOMAINS:
             logger.debug(f"Ignoring non-Realtor URL: {url}")
+            return
+
+        # BUG-1 fix: Don't overwrite agent_url after a match is found
+        if self._found_match:
             return
 
         self._agent_url = url
@@ -347,14 +350,7 @@ class RealtorUrlMatch(BaseMetric):
                 equiv_flags.add("show-recently-sold")
             if agent_parts["search_type"] == "open_houses" or gt_parts["search_type"] == "open_houses":
                 equiv_flags.add("show-open-house")
-            # Also remove if the flag was used for equivalence matching
-            # Guard: only strip if one side is actually the sold/open_houses path type
-            if agent_filters.get("show-recently-sold") == "true" or gt_filters.get("show-recently-sold") == "true":
-                if agent_parts["search_type"] == "sold" or gt_parts["search_type"] == "sold":
-                    equiv_flags.add("show-recently-sold")
-            if agent_filters.get("show-open-house") == "true" or gt_filters.get("show-open-house") == "true":
-                if agent_parts["search_type"] == "open_houses" or gt_parts["search_type"] == "open_houses":
-                    equiv_flags.add("show-open-house")
+            # BUG-4 fix: Removed dead equiv_flags block (lines 346-349 already handle this)
 
             agent_f = {k: v for k, v in agent_filters.items() if k not in equiv_flags}
             gt_f = {k: v for k, v in gt_filters.items() if k not in equiv_flags}
@@ -441,6 +437,12 @@ class RealtorUrlMatch(BaseMetric):
 
         # 3. Parse remaining segments as filters
         for seg in segments:
+            # BUG-11 fix: pet-friendly expands to both dog-friendly + cat-friendly
+            if seg.lower().strip() == "pet-friendly":
+                result["filters"]["dog-friendly"] = "true"
+                result["filters"]["cat-friendly"] = "true"
+                continue
+
             key, value = self._parse_filter_segment(seg)
             if key:
                 # Handle multiple type-* segments (merge into set)
@@ -468,7 +470,7 @@ class RealtorUrlMatch(BaseMetric):
         filter_prefixes = (
             "beds-", "baths-", "price-", "type-", "sqft-",
             "show-", "sby-", "pg-", "lot-", "age-", "year-built-",
-            "garage-", "pool-", "stories-", "hoa-", "radius-",
+            "garage-", "stories-", "hoa-", "radius-",  # BUG-3 fix: removed stale "pool-" (site uses show-pool)
             "dom-", "days-", "commute-",
             # Sold timeframe (browser-verified Feb 2026)
             "sold-within-",  # sold-within-7, sold-within-30, etc.
@@ -490,10 +492,8 @@ class RealtorUrlMatch(BaseMetric):
         Handles: City_ST, zip codes, multi-word cities (New-York_NY).
         """
         location = location.lower().strip()
-        # Normalize separators: treat - and _ as interchangeable for city names
-        # but preserve the underscore before state code
-        # e.g., "San-Francisco_CA" → "san-francisco_ca"
-        # e.g., "New-York_NY" → "new-york_ny"
+        # BUG-7 fix: URL-decoded spaces (%20) should become hyphens for matching
+        location = location.replace(" ", "-")
         return location
 
     def _parse_filter_segment(self, seg: str) -> tuple[str, str]:
@@ -555,6 +555,9 @@ class RealtorUrlMatch(BaseMetric):
         # 8. Lot size segments: lot-sqft-2500-10000 or lot-0.25-1
         if seg.startswith("lot-"):
             raw_lot = seg[4:]
+            # BUG-6 fix: strip "sqft-" subprefix (lot-sqft-5000-na → 5000-na)
+            if raw_lot.startswith("sqft-"):
+                raw_lot = raw_lot[5:]
             return "lot", raw_lot
 
         # 9. Age segments: age-0-5 or age-5-20
@@ -610,10 +613,13 @@ class RealtorUrlMatch(BaseMetric):
 
         # 19. Standalone rental pet/amenity filters (no prefix)
         standalone_filters = {
-            "dog-friendly", "cat-friendly", "pet-friendly",
+            "dog-friendly", "cat-friendly",
             "laundry", "dishwasher", "parking", "furnished",
             "income-restricted", "senior-living", "short-term",
         }
+        # BUG-11 fix: pet-friendly → expand to dog-friendly + cat-friendly
+        if seg == "pet-friendly":
+            return "dog-friendly", "true"  # First part; cat-friendly added below
         if seg in standalone_filters:
             return seg, "true"
 
@@ -752,9 +758,17 @@ class RealtorUrlMatch(BaseMetric):
             gt_set = set(gt_val.split(","))
             return agent_set == gt_set
 
-        # Price comparison: normalize both and compare
+         # Price comparison: normalize both and compare
         if key == "price":
-            return self._normalize_price_value(agent_val) == self._normalize_price_value(gt_val)
+            # BUG-8 fix: handle single-value price (price-500000 -> price-500000-na)
+            a_price = self._normalize_price_value(agent_val)
+            g_price = self._normalize_price_value(gt_val)
+            if a_price == g_price:
+                return True
+            # Single value → range: "500000" means "at least 500000" → "500000-na"
+            a_range = self._normalize_range_value(a_price, suffix="na")
+            g_range = self._normalize_range_value(g_price, suffix="na")
+            return a_range == g_range
 
         # HOA comparison: normalize both and compare
         if key == "hoa":
@@ -763,6 +777,12 @@ class RealtorUrlMatch(BaseMetric):
         # Range filters: handle single-value ↔ range equivalence
         # sqft/lot: single value N means "at least N" → N-na
         # age: single value N means "built within N years" → 0-N
+        # BUG-5 fix: features subset check (agent csgy ⊇ GT cs → match)
+        if key == "features":
+            agent_codes = {agent_val[i:i+2] for i in range(0, len(agent_val), 2)}
+            gt_codes = {gt_val[i:i+2] for i in range(0, len(gt_val), 2)}
+            return gt_codes.issubset(agent_codes)
+
         if key in ("sqft", "lot"):
             a_norm = self._normalize_range_value(agent_val, suffix="na")
             g_norm = self._normalize_range_value(gt_val, suffix="na")
@@ -789,7 +809,7 @@ class RealtorUrlMatch(BaseMetric):
 
 def generate_task_config(
     task: str,
-    gt_url: list[str],
+    gt_url: str | list[str],  # BUG-10 fix: accept both str and list[str]
     location: str,
     timezone: str,
     timestamp: int | None = None,
