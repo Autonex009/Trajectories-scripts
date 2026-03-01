@@ -143,11 +143,12 @@
 
         pageFilters: () => {
             try {
+                // --- EVENT LISTING PAGE FILTERS ---
                 // 1. Grab Quantity Dropdown
                 const qtySelect = document.querySelector('select[data-bdd="mobileQtyDropdown"], #filter-bar-quantity');
                 const selectedQuantity = qtySelect ? parseInt(qtySelect.value) : null;
 
-                // 2. Grab Min Price (Check input box first, fallback to slider ARIA attribute)
+                // 2. Grab Min Price
                 const minInput = document.querySelector('[data-bdd="exposed-mobile-filter-price-slider-min"] input');
                 const minSlider = document.querySelector('[aria-label*="Minimum ticket price"]');
                 let minPriceText = minInput ? minInput.value : (minSlider ? minSlider.getAttribute('aria-valuenow') : null);
@@ -157,7 +158,7 @@
                 const maxSlider = document.querySelector('[aria-label*="Maximum ticket price"]');
                 let maxPriceText = maxInput ? maxInput.value : (maxSlider ? maxSlider.getAttribute('aria-valuenow') : null);
 
-                // 4. NEW: Grab Ticket Types (Standard, Resale, VIP)
+                // 4. Grab Ticket Types (Standard, Resale, VIP)
                 const activeTicketTypes = [];
                 const typeCheckboxes = document.querySelectorAll('input[type="checkbox"][data-bdd="filter-modal-checkbox"]');
                 typeCheckboxes.forEach(cb => {
@@ -174,16 +175,44 @@
                     }
                 });
 
-                // 5. NEW: Grab ADA / Accessible Seating Toggle
+                // 5. Grab ADA / Accessible Seating Toggle
                 const adaToggle = document.querySelector('button[data-bdd="filter-ada-toggle"], button[data-testid="filter-ada-toggle"]');
                 const isADAActive = adaToggle ? adaToggle.getAttribute('aria-checked') === 'true' : false;
+
+                // --- SEARCH / DISCOVERY PAGE FILTERS ---
+                // 6. Location Filter
+                const locInput = document.querySelector('input[placeholder*="City"], input[placeholder*="Zip"]');
+                const filterLocation = locInput ? locInput.value : null;
+
+                // 7. Date Range Filter (Extract from hidden accessibility span)
+                const dateSpans = Array.from(document.querySelectorAll('span[class*="VisuallyHidden"]'));
+                const dateHidden = dateSpans.find(s => s.textContent.includes('Current date range:'));
+                let filterDateRange = null;
+                if (dateHidden) {
+                    filterDateRange = dateHidden.textContent.replace(/.*Current date range:\s*/i, '').trim();
+                } else {
+                    // Fallback to label sibling
+                    const dateLabel = Array.from(document.querySelectorAll('label')).find(l => l.textContent.trim() === 'Dates');
+                    if (dateLabel && dateLabel.nextElementSibling) filterDateRange = getText(dateLabel.nextElementSibling);
+                }
+
+                // 8. Games / Event Type Dropdown (Home/Away/All)
+                let filterGameType = null;
+                const gameLabel = Array.from(document.querySelectorAll('label')).find(l => l.textContent.trim().includes('Games'));
+                if (gameLabel && gameLabel.nextElementSibling) {
+                    const gameSelect = gameLabel.nextElementSibling.querySelector('select');
+                    if (gameSelect) filterGameType = gameSelect.options[gameSelect.selectedIndex]?.text;
+                }
 
                 return {
                     filterQuantity: selectedQuantity,
                     filterMinPrice: Parsers.price(minPriceText),
                     filterMaxPrice: Parsers.price(maxPriceText),
                     filterTicketTypes: activeTicketTypes.length > 0 ? activeTicketTypes : null,
-                    filterADA: isADAActive
+                    filterADA: isADAActive,
+                    filterLocation: filterLocation,
+                    filterDateRange: filterDateRange,
+                    filterGameType: filterGameType
                 };
             } catch (e) { 
                 return {}; 

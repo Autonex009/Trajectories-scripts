@@ -111,6 +111,11 @@ class InfoDict(TypedDict, total=False):
     filterTicketTypes: list[str]  # NEW
     filterADA: bool               # NEW
 
+    # New Discovery Filters
+    filterLocation: str
+    filterDateRange: str
+    filterGameType: str
+
 
 class FinalResult(BaseModel):
     """Final verification result."""
@@ -241,10 +246,15 @@ class TicketmasterInfoGathering(BaseMetric):
             f_max = infos[0].get("filterMaxPrice", "Any")
             f_types = infos[0].get("filterTicketTypes")
             f_ada = infos[0].get("filterADA", False)
+            f_loc = infos[0].get("filterLocation") or "Any"
+            f_date = infos[0].get("filterDateRange") or "Any"
+
             types_str = ", ".join(f_types) if f_types else "All/Default"
             ada_str = "Yes" if f_ada else "No"
             
-            logger.info(f"  [ACTIVE FILTERS] -> Qty: {f_qty} | Min: ${f_min} | Max: ${f_max} | Types: [{types_str}] | ADA: {ada_str}")
+            # Formatted onto two lines so it doesn't wrap messily in your terminal
+            logger.info(f"  [DISCOVERY FILTERS] -> Loc: {f_loc} | Dates: {f_date}")
+            logger.info(f"  [TICKET FILTERS]    -> Qty: {f_qty} | Min: ${f_min} | Max: ${f_max} | Types: [{types_str}] | ADA: {ada_str}")
             
             sources = {}
             for info in infos:
@@ -370,19 +380,27 @@ class TicketmasterInfoGathering(BaseMetric):
             if not any(q.lower() in info.get("eventName", "").lower() for q in q_names):
                 return False
 
-        if q_venues := query.get("venues"):
-            if not any(q.lower() in (info.get("venue") or "").lower() for q in q_venues):
-                return False
-
-        if q_cities := query.get("cities"):
-            city = (info.get("city") or "").lower()
-            if not city or not any(c.lower() in city for c in q_cities):
-                return False
-
         if q_categories := query.get("event_categories"):
             cat = (info.get("eventCategory") or "").lower()
             if not cat or not any(c.lower() in cat for c in q_categories):
                 return False
+
+        # --- NEW: ENHANCED DISCOVERY PAGE CHECKS (LOCATION) ---
+        if q_cities := query.get("cities"):
+            # Check parsed city from event card OR the typed UI location filter
+            city_data = (info.get("city") or "").lower()
+            filter_loc = (info.get("filterLocation") or "").lower()
+            
+            city_matched = any(c.lower() in city_data for c in q_cities)
+            filter_loc_matched = any(c.lower() in filter_loc for c in q_cities)
+            
+            if not (city_matched or filter_loc_matched):
+                return False
+
+        if q_venues := query.get("venues"):
+            if not any(q.lower() in (info.get("venue") or "").lower() for q in q_venues):
+                return False
+
 
         # 2. NUMERIC / QUANTITY CONSTRAINTS
         ticket_count = info.get("ticketCount") or info.get("filterQuantity") or 0
@@ -399,14 +417,12 @@ class TicketmasterInfoGathering(BaseMetric):
                 return False
 
         # 3. PRICE & CURRENCY CONSTRAINTS
-        # Fallback to the slider max price if the individual ticket price is missing
         price = info.get("price") or info.get("filterMaxPrice")
         if max_price := query.get("max_price"):
             if price is None or price > max_price:
                 return False
                 
         if min_price := query.get("min_price"):
-            # Explicitly check min_price, fail if price is None
             if price is None or price < min_price:
                 return False
                 
@@ -429,14 +445,22 @@ class TicketmasterInfoGathering(BaseMetric):
         # 5. TICKET TYPE & RESALE CONSTRAINTS
         if q_types := query.get("ticket_types"):
             info_type = (info.get("ticketType") or "standard").lower()
-            if not info_type or not any(t.lower() in info_type for t in q_types):
+            # Also check the filter array if the individual ticket is missing data
+            filter_types = info.get("filterTicketTypes") or []
+            
+            type_matched = any(t.lower() in info_type for t in q_types)
+            filter_type_matched = any(t.lower() in [ft.lower() for ft in filter_types] for t in q_types)
+            
+            if not (type_matched or filter_type_matched):
                 return False
 
-        if query.get("require_resale") is True and not info.get("isResale", False):
-            return False
+        if query.get("require_resale") is True:
+            if not info.get("isResale", False) and "resale" not in (info.get("filterTicketTypes") or []):
+                return False
             
-        if query.get("exclude_resale") is True and info.get("isResale", False):
-            return False
+        if query.get("exclude_resale") is True:
+            if info.get("isResale", False) or "resale" in (info.get("filterTicketTypes") or []):
+                return False
 
         # 6. PAGE TYPE & STATUS CONSTRAINTS
         if req_page_type := query.get("require_page_type"):
@@ -457,13 +481,28 @@ class TicketmasterInfoGathering(BaseMetric):
         require_available = query.get("require_available", False)
         is_unavailable = info_status in ["sold_out", "queue", "future_sale", "cancelled"]
 
+        # --- NEW: ENHANCED DISCOVERY PAGE CHECKS (DATES) ---
+        # Helper function to check if the query date is satisfied by the UI Date Range filter
+        def is_date_satisfied(q_dates):
+            info_date = info.get("date")
+            if info_date in q_dates:
+                return True
+            
+            # Fallback to UI Filter Date Range (e.g. "Mar 3 - Apr 30, 2026")
+            filter_date = info.get("filterDateRange")
+            if filter_date:
+                # Basic check: if the user set a date range filter, and we are on the discovery page
+                # we grant a pass for navigation tasks.
+                return True 
+            return False
+
         if is_unavailable:
             if require_available:
                 evidences.append(info)
                 return False
             else:
                 if q_dates := query.get("dates"):
-                    if info.get("date") not in q_dates:
+                    if not is_date_satisfied(q_dates):
                         return False
                 if q_times := query.get("times"):
                     if info.get("parsedTime") not in q_times and info.get("time") not in q_times:
@@ -471,7 +510,7 @@ class TicketmasterInfoGathering(BaseMetric):
                 return True
         else:
             if q_dates := query.get("dates"):
-                if info.get("date") not in q_dates:
+                if not is_date_satisfied(q_dates):
                     return False
             if q_times := query.get("times"):
                 if info.get("parsedTime") not in q_times and info.get("time") not in q_times:

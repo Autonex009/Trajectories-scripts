@@ -89,8 +89,7 @@ SCENARIOS: list[TaskScenario] = [
         description="Search for Coldplay concert tickets",
         url="https://www.ticketmaster.com/",
         task_prompt=(
-            "Search for Coldplay concert tickets. "
-            "Find any upcoming Coldplay event and check ticket availability."
+            "Search for Coldplay concert tickets. Find any upcoming Coldplay event and check ticket availability."
         ),
         queries=[[{
             "event_names": ["coldplay"],  
@@ -108,8 +107,7 @@ SCENARIOS: list[TaskScenario] = [
         description="Search for Lakers tickets, excluding Verified Resale",
         url="https://www.ticketmaster.com/",
         task_prompt=(
-            "Search for a Los Angeles Lakers home game. "
-            "Find standard tickets only (filter out Verified Resale) and verify availability."
+            "Search for a Los Angeles Lakers home game and find standard tickets only (filter out Verified Resale)."
         ),
         queries=[[{
             "event_names": ["lakers"], 
@@ -128,8 +126,7 @@ SCENARIOS: list[TaskScenario] = [
         description="Find affordable theater tickets",
         url="https://www.ticketmaster.com/",
         task_prompt=(
-            "Search for Hamilton theater tickets. "
-            "Navigate to an event page and find tickets under $350."
+            "Search for Hamilton theater tickets priced under $350."
         ),
         queries=[[{
             "event_names": ["hamilton"],
@@ -142,6 +139,562 @@ SCENARIOS: list[TaskScenario] = [
         category="theater",
         tags=["theater", "broadway", "budget"],
     ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jokoy_chappelle_soundcheck",
+        name="Jo Koy & Dave Chappelle - Soundcheck Series",
+        description="Search for the niche Soundcheck Series comedy show in Yellow Springs.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the 'Soundcheck Series' comedy event featuring Jo Koy and hosted by Dave Chappelle scheduled for either July 24 or July 25, 2026."
+        ),
+        queries=[[{
+            "event_names": ["jo koy", "dave chappelle", "soundcheck series"], 
+            "cities": ["yellow springs"],
+            "dates": ["2026-07-24", "2026-07-25"],
+            "require_available": False, 
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="comedy",
+        tags=["comedy", "standup", "specific_dates", "niche_location"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jo_koy_chappelle/yellow_springs",
+        name="Jo Koy & Dave Chappelle - Yellow Springs",
+        description="Find the specific Soundcheck Series comedy show in Ohio.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the 'Soundcheck Series' comedy event featuring Jo Koy and Dave Chappelle in Yellow Springs, OH. Navigate to the event page and check ticket availability."
+        ),
+        queries=[[{
+            "event_names": ["jo koy", "dave chappelle"], 
+            "cities": ["yellow springs"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="comedy",
+        tags=["comedy", "jo koy", "dave chappelle", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/festivals/bottlerock/saturday",
+        name="BottleRock Napa Valley - Saturday Ticket",
+        description="Find tickets for the middle day of a 3-day festival.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the BottleRock Napa Valley festival. Find the event specifically for the Saturday, May 23, 2026 date."
+        ),
+        queries=[[{
+            "event_names": ["bottlerock napa valley"], 
+            "dates": ["2026-05-23"],
+            "cities": ["napa"],
+            "require_available": False,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="festivals",
+        tags=["festival", "music", "bottlerock", "date_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/backstreet_boys/standard_show",
+        name="Backstreet Boys Sphere - Standard Concert",
+        description="Navigate to the standard concert listing, avoiding the Suite Reservation page.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Backstreet Boys 'Into The Millennium' concert at the Sphere in Las Vegas. Find tickets for the Friday, July 17, 2026 show. Make sure you are looking at the actual concert tickets, not the Suite Reservations."
+        ),
+        queries=[[{
+            "event_names": ["backstreet boys: into the millennium"],
+            "dates": ["2026-07-17"],
+            "cities": ["las vegas"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["concerts", "pop", "backstreet boys", "exact_match"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/backstreet_boys/suite_reservation",
+        name="Backstreet Boys Sphere - Suite Reservation",
+        description="Find the premium Suite Reservation listing for opening night.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Backstreet Boys at the Sphere in Las Vegas. Navigate specifically to the 'Suite Reservation' event page for their opening night on July 16, 2026."
+        ),
+        queries=[[{
+            "event_names": ["suite reservation", "backstreet boys at sphere - suite reservation"],
+            "dates": ["2026-07-16"],
+            "cities": ["las vegas"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["concerts", "pop", "backstreet boys", "vip_suite"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/wwe/raw_seattle",
+        name="WWE Monday Night Raw - Seattle",
+        description="Navigate to a specific Monday Night Raw show on the tour schedule.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for WWE Monday Night Raw in Seattle. Verify ticket availability for the show on March 9, 2026."
+        ),
+        queries=[[{
+            "event_names": ["monday night raw", "wwe"],
+            "dates": ["2026-03-09"],
+            "cities": ["seattle"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["sports", "wrestling", "wwe", "date_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/wwe/smackdown_pittsburgh_standard",
+        name="WWE SmackDown - Primary Tickets Pittsburgh",
+        description="Find standard tickets for a Friday Night SmackDown show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the WWE Friday Night Smackdown event in Pittsburgh on March 27, 2026. Look for only the standard admission tickets."
+        ),
+        queries=[[{
+            "event_names": ["smackdown", "friday night smackdown"],
+            "dates": ["2026-03-27"],
+            "cities": ["pittsburgh"],
+            "exclude_resale": True,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "wrestling", "wwe", "primary_only"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/family/monster_jam/discovery_dates",
+        name="Monster Jam - Discovery Date Range",
+        description="Test the date range filter on the discovery page.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Monster Jam on Ticketmaster and use the date filter to show events from March 15 to March 27, 2026."
+        ),
+        queries=[[{
+            "event_names": ["monster jam"], 
+            "dates": ["2026-03-15"], # The is_date_satisfied fallback will pass this
+            "require_available": False,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="family",
+        tags=["family", "motorsports", "monster jam", "date_filter", "discovery"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/family/monster_jam/grand_rapids_freestyle",
+        name="Monster Jam Freestyle Mania - Grand Rapids",
+        description="Find the 'Freestyle Mania' specific variant in Grand Rapids.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for 'Monster Jam Freestyle Mania' in Grand Rapids."
+        ),
+        queries=[[{
+            "event_names": ["monster jam freestyle mania"],
+            "cities": ["grand rapids"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Detroit",
+        category="family",
+        tags=["family", "motorsports", "monster jam", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/family/monster_jam/hartford_exact",
+        name="Monster Jam - Hartford March 21",
+        description="Navigate to the exact Saturday show in Hartford.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Monster Jam event in Hartford exactly on March 21, 2026."
+        ),
+        queries=[[{
+            "event_names": ["monster jam"],
+            "cities": ["hartford"],
+            "dates": ["2026-03-21"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="family",
+        tags=["family", "motorsports", "monster jam", "exact_match"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/family/monster_jam/tucson_budget",
+        name="Monster Jam - Tucson Budget Tickets",
+        description="Find affordable tickets using price filters in Tucson.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for Monster Jam tickets in Tucson on March 20, 2026. Adjust the maximum price filter to $60 or find individual tickets listed under $60."
+        ),
+        queries=[[{
+            "event_names": ["monster jam"],
+            "cities": ["tucson"],
+            "dates": ["2026-03-20"],
+            "max_price": 60.0,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Phoenix",
+        category="family",
+        tags=["family", "motorsports", "monster jam", "budget", "price_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/family/monster_jam/biloxi_standard",
+        name="Monster Jam - Biloxi Standard Only",
+        description="Ensure verified resale is unchecked for the Biloxi show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Monster Jam in Biloxi on March 15, 2026. Ensure you filter out verified resale tickets and verify standard ticket availability."
+        ),
+        queries=[[{
+            "event_names": ["monster jam"],
+            "cities": ["biloxi"],
+            "dates": ["2026-03-15"],
+            "exclude_resale": True,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="family",
+        tags=["family", "motorsports", "monster jam", "primary_only"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/royals_budget",
+        name="Dodgers @ Royals - Under $40",
+        description="Find budget tickets for the Dodgers away game in Kansas City.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Los Angeles Dodgers away game against the Kansas City Royals on March 17, 2026. Find tickets priced less than $40."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "royals"], 
+            "dates": ["2026-03-17"],
+            "max_price": 40.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["mlb", "baseball", "dodgers", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/spring_training_surprise",
+        name="Dodgers Spring Training - Surprise AZ",
+        description="Find the specific Spring Training game in Surprise, Arizona.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Los Angeles Dodgers tickets for their Spring Training game against the Chicago White Sox happening at Surprise Stadium in Arizona on March 15, 2026."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "white sox"],
+            "dates": ["2026-03-15"],
+            "cities": ["surprise"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["mlb", "spring_training", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/vs_athletics",
+        name="Dodgers vs. The A's - May 13",
+        description="Navigate to a specific home game against The A's.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Los Angeles Dodgers home game against The A's on May 13, 2026."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "a's", "athletics"],
+            "dates": ["2026-05-13"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["mlb", "dodgers", "exact_match"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/vs_diamondbacks_flexible",
+        name="Dodgers vs. Diamondbacks - Flexible Date",
+        description="Find a game against the Diamondbacks on either May 19 or May 21.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for an upcoming Los Angeles Dodgers game against the Arizona Diamondbacks. Check availability for either the May 19 or May 21, 2026 game."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "diamondbacks"],
+            "dates": ["2026-05-19", "2026-05-21"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["mlb", "dodgers", "flexible_dates"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/royals_4_tickets",
+        name="Dodgers @ Royals - Exactly 4 Tickets",
+        description="Ensure the agent selects exactly 4 tickets from the filter dropdown.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find exactly 4 tickets for the Los Angeles Dodgers at Kansas City Royals game on March 17, 2026."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "royals"],
+            "dates": ["2026-03-17"],
+            "ticket_quantities": [4],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["mlb", "quantity_filter", "group_tickets"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/dodgers/white_sox_primary",
+        name="Dodgers vs White Sox - Standard Tickets",
+        description="Find standard admission tickets, excluding verified resale.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the March 15, 2026 game between the Dodgers and White Sox. Filter the results to exclude 'Verified Resale' and only show Standard tickets."
+        ),
+        queries=[[{
+            "event_names": ["dodgers", "white sox"],
+            "dates": ["2026-03-15"],
+            "exclude_resale": True,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Phoenix",
+        category="sports",
+        tags=["mlb", "primary_only", "spring_training"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/mlb/kansas_city_discovery",
+        name="MLB Discovery - Kansas City March 17",
+        description="Verify location and date filters on the sports discovery page.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for any Dodgers/Royals game in Kansas City happening on 17th March 2026."
+        ),
+        queries=[[{
+            "event_categories": ["sports"],
+            "cities": ["kansas city"],
+            "dates": ["2026-03-17"],
+            "require_available": False, # Agent passes just by setting the UI filters correctly
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["sports", "discovery", "location_filter", "date_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/bruno_mars/strict_budget_pair",
+        name="Bruno Mars - Pair between $600 and $1000",
+        description="Find exactly 2 tickets within a specific high-end price range.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Bruno Mars 'The Romantic Tour' concert on April 18, 2026 for exactly 2 tickets priced between $600 and $1000."
+        ),
+        queries=[[{
+            "event_names": ["bruno mars", "the romantic tour"], 
+            "dates": ["2026-04-18"],
+            "ticket_quantities": [2],
+            "min_price": 600.00,
+            "max_price": 1000.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["pop", "bruno mars", "price_range", "quantity_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/bruno_mars/premium_resale",
+        name="Bruno Mars - Premium Resale Tickets",
+        description="Find high-end verified resale tickets over $700.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Bruno Mars tickets for his April 18, 2026 show. Ensure the 'Verified Resale' filter is active, and find tickets priced over $700."
+        ),
+        queries=[[{
+            "event_names": ["bruno mars"],
+            "dates": ["2026-04-18"],
+            "require_resale": True,
+            "min_price": 700.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "bruno mars", "resale_only", "premium_price"],
+    ),
+    # 3. Tests row-specific matching
+    TaskScenario(
+        task_id="ticketmaster/concerts/bruno_mars/front_rows",
+        name="Bruno Mars - Rows 9 or 10",
+        description="Find tickets specifically in Row 9 or Row 10.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Bruno Mars concert on April 18, 2026. Find available tickets specifically located in Row 9 or Row 10."
+        ),
+        queries=[[{
+            "event_names": ["bruno mars"],
+            "dates": ["2026-04-18"],
+            "rows": ["9", "10"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="concerts",
+        tags=["pop", "bruno mars", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/mj/matinee",
+        name="MJ The Musical - 1:00 PM Matinee",
+        description="Navigate to a specific matinee performance of a Broadway show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for 'MJ' the musical at the Neil Simon Theatre in New York on March 18, 2026 and check availability."
+        ),
+        queries=[[{
+            "event_names": ["mj"],
+            "cities": ["new york"],
+            "dates": ["2026-03-18"],
+            "times": ["13:00"], # Evaluator parses 1:00 PM as 13:00
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="theater",
+        tags=["theater", "broadway", "mj", "time_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/bruno_mars/cheap_ticket",
+        name="Bruno Mars - Under $650",
+        description="Find a budget ticket for a high-demand concert.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Bruno Mars 'The Romantic Tour' for April 18, 2026. Find any available ticket that costs less than $650."
+        ),
+        queries=[[{
+            "event_names": ["bruno mars"],
+            "dates": ["2026-04-18"],
+            "max_price": 650.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["pop", "bruno mars", "budget", "max_price"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/jonas_brothers/lincoln_budget",
+        name="Jonas Brothers Lincoln - Under $250",
+        description="Find budget tickets for the Jonas Brothers concert in Lincoln, CA.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Jonas Brothers concert at The Venue at Thunder Valley Casino Resort in Lincoln, CA on May 29, 2026. Find tickets that cost less than $250."
+        ),
+        queries=[[{
+            "event_names": ["jonas brothers"], 
+            "dates": ["2026-05-29"],
+            "cities": ["lincoln"],
+            "max_price": 250.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["pop", "jonas brothers", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/festivals/boots_and_hearts/friday_pass",
+        name="Boots And Hearts Festival - Friday Pass",
+        description="Find a single-day festival pass featuring the Jonas Brothers.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Boots And Hearts Music Festival in Oro-Medonte, ON, Canada on Friday, August 7, 2026 and check ticket availability."
+        ),
+        queries=[[{
+            "event_names": ["boots and hearts"],
+            "dates": ["2026-08-07"],
+            "cities": ["oro-medonte"],
+            "require_available": True,
+        }]],
+        location="Canada",
+        timezone="America/Toronto",
+        category="festivals",
+        tags=["festival", "country", "jonas brothers", "single_day"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/jonas_brothers/hometown_jacksonville",
+        name="Jonas Brothers - Greetings From Your Hometown",
+        description="Find the specifically named 'Hometown' variant event in Jacksonville.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Jonas Brothers 'Greetings From Your Hometown' concert happening at Daily's Place Amphitheater in Jacksonville on December 30, 2025."
+        ),
+        queries=[[{
+            "event_names": ["jonas 20", "greetings from your hometown"],
+            "dates": ["2025-12-30"],
+            "cities": ["jacksonville"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "jonas brothers", "exact_match", "special_event"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/jonas_brothers/aspen_private",
+        name="Jonas Brothers - Aspen Private Venue",
+        description="Locate a concert happening at an undisclosed or private venue.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Jonas Brothers concert scheduled for October 4, 2025, in Aspen, CO."
+        ),
+        queries=[[{
+            "event_names": ["jonas brothers"],
+            "dates": ["2025-10-04"],
+            "cities": ["aspen"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Denver",
+        category="concerts",
+        tags=["pop", "jonas brothers", "location_filter", "private_venue"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/jonas_brothers/ziegfeld_new_york",
+        name="Jonas Brothers - Ziegfeld Ballroom NY",
+        description="Find standard admission tickets for the New York ballroom show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Jonas Brothers performance at the Ziegfeld Ballroom in New York on November 15, 2025, specifically standard tickets."
+        ),
+        queries=[[{
+            "event_names": ["jonas brothers"],
+            "dates": ["2025-11-15"],
+            "cities": ["new york"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "jonas brothers", "new_york", "standard_tickets"],
+    )
+
 ]
 
 
@@ -283,7 +836,7 @@ class ResultReporter:
                     all_events.append(event)
         
         if all_events:
-            for i, event in enumerate(all_events[:10], 1):  # Show first 10
+            for i, event in enumerate(all_events, 1):  # Show first 10
                 name = event.get("eventName", "unknown").title()
                 city = event.get("city") or "?"
                 date = event.get("date") or "?"
