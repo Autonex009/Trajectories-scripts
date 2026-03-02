@@ -246,6 +246,342 @@
     "domain": "ticketmaster",
     "l1_category": "entertainment",
     "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/concerts/charlie_puth/qty3_price_range",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for Charlie Puth's 'Whatever's Clever! World Tour' on April 24, 2026. Select exactly 3 tickets priced between $80 and $180.\", \"queries\": [[{\"event_names\": [\"charlie puth\", \"whatever's clever\"], \"dates\": [\"2026-04-24\"], \"ticket_quantities\": [3], \"min_price\": 80.0, \"max_price\": 180.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/concerts/charlie_puth/under_60",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Charlie Puth concert on April 24, 2026. Find any available standard ticket that costs less than $60.\", \"queries\": [[{\"event_names\": [\"charlie puth\"], \"dates\": [\"2026-04-24\"], \"max_price\": 60.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/concerts/charlie_puth/row_2",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for the Charlie Puth 'Whatever's Clever! World Tour' on April 24, 2026. Look for tickets specifically located in Row 2.\", \"queries\": [[{\"event_names\": [\"charlie puth\"], \"dates\": [\"2026-04-24\"], \"rows\": [\"2\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/concerts/charlie_puth/rio_de_janeiro",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Charlie Puth concert taking place at Parque Olímpico in Rio de Janeiro. \", \"queries\": [[{\"event_names\": [\"charlie puth\", \"parque olímpico\"], \"cities\": [\"rio de janeiro\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/concerts/charlie_puth/whatevers_clever_tour",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search specifically for the 'Whatever's Clever! World Tour' happening on April 24, 2026 event and ensure tickets are available.\", \"queries\": [[{\"event_names\": [\"whatever's clever\"], \"dates\": [\"2026-04-24\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "concerts"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/tight_budget_pair",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Jeff Dunham 'Artificial Intelligence' comedy tour on April 11, 2026 for exactly 2 tickets priced between $77 and $78.\", \"queries\": [[{\"event_names\": [\"jeff dunham\", \"artificial intelligence\"], \"dates\": [\"2026-04-11\"], \"ticket_quantities\": [2], \"min_price\": 77.0, \"max_price\": 78.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/row_a_front",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for the Jeff Dunham concert on April 11, 2026. Look for tickets specifically located in Row A.\", \"queries\": [[{\"event_names\": [\"jeff dunham\"], \"dates\": [\"2026-04-11\"], \"rows\": [\"a\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/detroit_matinee",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for Jeff Dunham in Detroit, MI. Find tickets for his 3:00 PM matinee show at the Fox Theatre Detroit on April 25, 2026.\", \"queries\": [[{\"event_names\": [\"jeff dunham\"], \"cities\": [\"detroit\"], \"venues\": [\"fox theatre\"], \"dates\": [\"2026-04-25\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Detroit\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/vegas_show",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for Jeff Dunham's 'Artificial Intelligence' tour stop in Las Vegas, NV at PH Live at Planet Hollywood on April 26, 2026.\", \"queries\": [[{\"event_names\": [\"jeff dunham\", \"artificial intelligence\"], \"cities\": [\"las vegas\"], \"dates\": [\"2026-04-26\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/budget_under_80",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for Jeff Dunham tickets for his April 11, 2026 performance and verify if there are standard tickets available that cost less than $80.\", \"queries\": [[{\"event_names\": [\"jeff dunham\"], \"dates\": [\"2026-04-11\"], \"max_price\": 80.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/detroit_discovery",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/discover/comedy\", \"task\": \"Go to the Ticketmaster Comedy section and search for events happening in 'Detroit' on April 25, 2026. Do not need to click into any actual event.\", \"queries\": [[{\"event_categories\": [\"comedy\"], \"cities\": [\"detroit\"], \"dates\": [\"2026-04-25\"], \"require_available\": false}]], \"location\": \"United States\", \"timezone\": \"America/Detroit\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/comedy/jeff_dunham/row_c",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Look for tickets to the Jeff Dunham 'Artificial Intelligence' tour on April 11, 2026. Check if there are any tickets available in Row C.\", \"queries\": [[{\"event_names\": [\"jeff dunham\"], \"dates\": [\"2026-04-11\"], \"rows\": [\"c\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "comedy"
+  },
+  {
+    "task_id": "ticketmaster/theater/david_copperfield/late_show",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for David Copperfield tickets on March 2, 2026. Find availability specifically for the 9:30 PM late show.\", \"queries\": [[{\"event_names\": [\"david copperfield\"], \"dates\": [\"2026-03-02\"], \"times\": [\"21:30\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/david_copperfield/discovery_dates",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for David Copperfield events from March 26 to April 30, 2026. Do not need to click into a specific event.\", \"queries\": [[{\"event_names\": [\"david copperfield\"], \"dates\": [\"2026-03-26\"], \"require_available\": false}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/david_copperfield/4_tickets",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find exactly 4 tickets for the David Copperfield magic show on March 3, 2026.\", \"queries\": [[{\"event_names\": [\"david copperfield\"], \"dates\": [\"2026-03-03\"], \"ticket_quantities\": [4], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/boise_location",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for 'The Lion King' Broadway touring production. Find the event happening in Boise, ID at the Morrison Center.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"cities\": [\"boise\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/march_7_matinee",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for 'The Lion King' in Boise on March 7, 2026 to the 1:00 PM matinee show and check availability.\", \"queries\": [[{\"event_names\": [\"lion king\", \"matinee show\"], \"dates\": [\"2026-03-07\"], \"times\": [\"13:00\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/march_7_evening",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for 'The Lion King' in Boise on March 7, 2026. Navigate specifically to the 7:00 PM evening show and check availability.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-07\"], \"times\": [\"19:00\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/qty2_price_range",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for 'The Lion King' touring show on March 27, 2026 and look for exactly 2 tickets priced in the range of $100 and $280.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"ticket_quantities\": [2], \"min_price\": 100.0, \"max_price\": 280.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/budget_under_150",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Look for 'The Lion King' tickets on March 27, 2026. Find any available ticket that costs less than $150.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"max_price\": 150.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/premium_over_350",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for premium tickets to 'The Lion King' on March 27, 2026. Find tickets that are priced over $350.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"min_price\": 350.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/row_g",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for 'The Lion King' on March 27, 2026. Look for tickets specifically located in Row G.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"rows\": [\"g\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/row_l_pair",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find exactly 2 tickets for 'The Lion King' on March 27, 2026. Ensure the tickets are located in Row L.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"ticket_quantities\": [2], \"rows\": [\"l\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/row_z",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for tickets to 'The Lion King' on March 27, 2026. Look for tickets specifically located further back in Row Z.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"rows\": [\"z\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/theater/lion_king/primary_budget",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for 'The Lion King' on March 27, 2026. Verify only the standard tickets availability priced under $120.\", \"queries\": [[{\"event_names\": [\"lion king\"], \"dates\": [\"2026-03-27\"], \"exclude_resale\": true, \"max_price\": 120.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Boise\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "theater"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/banshees_season_ticket",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the 2026 Banshees Season Ticket in Quincy, MA. Navigate to the listing and check ticket availability.\", \"queries\": [[{\"event_names\": [\"banshees season ticket\"], \"cities\": [\"quincy\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/exiles_vs_breakers",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for the New York Exiles vs Bay Breakers match happening in Mt. Vernon on May 9, 2026.\", \"queries\": [[{\"event_names\": [\"exiles\", \"bay breakers\"], \"dates\": [\"2026-05-09\"], \"cities\": [\"mt. vernon\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/tempest_vs_banshees_primary",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find only the standard tickets for the Chicago Tempest vs Boston Banshees game in Lisle on May 10, 2026. \", \"queries\": [[{\"event_names\": [\"tempest\", \"banshees\"], \"dates\": [\"2026-05-10\"], \"cities\": [\"lisle\"], \"exclude_resale\": true, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/onyx_vs_exiles",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Look for the Denver Onyx vs NY Exiles match taking place in Denver on June 21, 2026. Check availability of tickets.\", \"queries\": [[{\"event_names\": [\"onyx\", \"exiles\"], \"dates\": [\"2026-06-21\"], \"cities\": [\"denver\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Denver\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/gemini_flexible_dates",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find a Twin Cities Gemini home game in Eagan. Check ticket availability for either the June 7 or June 21, 2026 game.\", \"queries\": [[{\"event_names\": [\"twin cities gemini\", \"tc gemini\"], \"cities\": [\"eagan\"], \"dates\": [\"2026-06-07\", \"2026-06-21\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/hounds_budget",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Chicago Hounds vs New England Free Jacks match in Nashville on April 19, 2026. Find tickets that cost less than $50.\", \"queries\": [[{\"event_names\": [\"chicago hounds\", \"free jacks\"], \"dates\": [\"2026-04-19\"], \"cities\": [\"nashville\"], \"max_price\": 50.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/breakers_sacramento",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find the Bay Breakers vs Chicago Tempest match on May 31, 2026. Make sure it's the game happening specifically in Sacramento.\", \"queries\": [[{\"event_names\": [\"bay breakers\", \"tempest\"], \"dates\": [\"2026-05-31\"], \"cities\": [\"sacramento\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Los_Angeles\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/banshees_breakers_4_tickets",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Boston Banshees vs Bay Breakers game on June 7, 2026 in Quincy, search for exactly 4 tickets.\", \"queries\": [[{\"event_names\": [\"boston banshees\", \"bay breakers\"], \"dates\": [\"2026-06-07\"], \"cities\": [\"quincy\"], \"ticket_quantities\": [4], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/rugby/onyx_season_ticket",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Locate the 2026 Onyx Season Ticket package for Denver and check availability.\", \"queries\": [[{\"event_names\": [\"onyx season ticket\"], \"cities\": [\"denver\"], \"dates\": [\"2026-05-10\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Denver\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/brick_city_group_budget",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Brick City Fight Night Series happening on April 10, 2026 for exactly 8 tickets priced between $100 and $270.\", \"queries\": [[{\"event_names\": [\"brick city fight night series\"], \"dates\": [\"2026-04-10\"], \"ticket_quantities\": [8], \"min_price\": 100.0, \"max_price\": 270.0, \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/brick_city_row_6",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Look for tickets to the Brick City Fight Night Series on April 10, 2026. Check if there are any tickets available exactly in Row 6.\", \"queries\": [[{\"event_names\": [\"brick city fight night series\"], \"dates\": [\"2026-04-10\"], \"rows\": [\"6\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/matchroom_orlando",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the Matchroom Boxing event featuring Adames vs Williams. Navigate specifically to the event happening in Orlando on March 21, 2026 at 6:00 PM.\", \"queries\": [[{\"event_names\": [\"matchroom boxing\", \"adames v williams\"], \"dates\": [\"2026-03-21\"], \"cities\": [\"orlando\"], \"times\": [\"18:00\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/thursday_night_anchorage",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for 'Thursday Night At The Fights' in Anchorage, AK. Fiind the event happening on March 26, 2026, not earlier in the month.\", \"queries\": [[{\"event_names\": [\"thursday night at the fights\"], \"dates\": [\"2026-03-26\"], \"cities\": [\"anchorage\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Anchorage\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/boxing_insider_atlantic_city",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the 'Boxing Insider: Live Professional Boxing' event in Atlantic City on March 7, 2026. Look at the standard event tickets, not the Ticket + Hotel Deals package.\", \"queries\": [[{\"event_names\": [\"boxing insider: live professional boxing\"], \"dates\": [\"2026-03-07\"], \"cities\": [\"atlantic city\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/down_for_the_count_san_antonio",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the 'Down For The Count' boxing event happening at Sam's Burger Joint in San Antonio, TX on March 20, 2026.\", \"queries\": [[{\"event_names\": [\"down for the count\"], \"dates\": [\"2026-03-20\"], \"cities\": [\"san antonio\"], \"venues\": [\"sam's burger joint\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/Chicago\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/foxwoods_bare_knuckle",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Find tickets for the Foxwoods Fight Night - Bare Knuckle Boxing 52 event in Mashantucket, CT on March 28, 2026.\", \"queries\": [[{\"event_names\": [\"foxwoods fight night\", \"bare knuckle boxing 52\"], \"dates\": [\"2026-03-28\"], \"cities\": [\"mashantucket\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
+  },
+  {
+    "task_id": "ticketmaster/sports/boxing/fdny_battle_of_badges",
+    "task_generation_config_json": "{\"_target_\": \"navi_bench.ticketmaster.ticketmaster_task_generation.generate_task_config_deterministic\", \"mode\": \"any\", \"url\": \"https://www.ticketmaster.com/\", \"task\": \"Search for the FDNY Bravest Boxing International Battle Of The Badges event happening in New York on March 6, 2026.\", \"queries\": [[{\"event_names\": [\"fdny bravest boxing\", \"battle of the badges\"], \"dates\": [\"2026-03-06\"], \"cities\": [\"new york\"], \"require_available\": true}]], \"location\": \"United States\", \"timezone\": \"America/New_York\"}",
+    "env": "real",
+    "domain": "ticketmaster",
+    "l1_category": "entertainment",
+    "l2_category": "sports"
   }
 
 ]

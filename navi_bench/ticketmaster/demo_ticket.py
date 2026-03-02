@@ -693,7 +693,817 @@ SCENARIOS: list[TaskScenario] = [
         timezone="America/New_York",
         category="concerts",
         tags=["pop", "jonas brothers", "new_york", "standard_tickets"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/charlie_puth/qty3_price_range",
+        name="Charlie Puth - 3 Tickets ($80-$180)",
+        description="Find exactly 3 tickets within a specific price range.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Charlie Puth's 'Whatever's Clever! World Tour' on April 24, 2026. Select exactly 3 tickets priced between $80 and $180."
+        ),
+        queries=[[{
+            "event_names": ["charlie puth", "whatever's clever"], 
+            "dates": ["2026-04-24"],
+            "ticket_quantities": [3],
+            "min_price": 80.00,
+            "max_price": 180.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "charlie puth", "quantity_filter", "price_range"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/charlie_puth/under_60",
+        name="Charlie Puth - Budget Ticket Under $60",
+        description="Find a budget ticket below $60.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Charlie Puth concert on April 24, 2026. Find any available standard ticket that costs less than $60."
+        ),
+        queries=[[{
+            "event_names": ["charlie puth"],
+            "dates": ["2026-04-24"],
+            "max_price": 60.00, # Will correctly match the $53.45 ticket from logs
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "charlie puth", "budget", "max_price"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/charlie_puth/row_2",
+        name="Charlie Puth - Row 2 Specific",
+        description="Verify tickets located exactly in Row 2.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Charlie Puth 'Whatever's Clever! World Tour' on April 24, 2026. Look for tickets specifically located in Row 2."
+        ),
+        queries=[[{
+            "event_names": ["charlie puth"],
+            "dates": ["2026-04-24"],
+            "rows": ["2"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="concerts",
+        tags=["pop", "charlie puth", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/charlie_puth/rio_de_janeiro",
+        name="Charlie Puth - Rio de Janeiro",
+        description="Navigate to an international venue listing.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Charlie Puth concert taking place at Parque Olímpico in Rio de Janeiro. "
+        ),
+        queries=[[{
+            "event_names": ["charlie puth", "parque olímpico"],
+            "cities": ["rio de janeiro"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="concerts",
+        tags=["pop", "charlie puth", "international", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/concerts/charlie_puth/whatevers_clever_tour",
+        name="Charlie Puth - Whatever's Clever Tour",
+        description="Match the exact tour naming convention.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search specifically for the 'Whatever's Clever! World Tour' happening on April 24, 2026 event and ensure tickets are available."
+        ),
+        queries=[[{
+            "event_names": ["whatever's clever"],
+            "dates": ["2026-04-24"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="concerts",
+        tags=["pop", "charlie puth", "exact_match", "tour_name"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/tight_budget_pair",
+        name="Jeff Dunham - Pair exactly $77 to $78",
+        description="Find exactly 2 tickets in a very tight price window.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Jeff Dunham 'Artificial Intelligence' comedy tour on April 11, 2026 for exactly 2 tickets priced between $77 and $78."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham", "artificial intelligence"], 
+            "dates": ["2026-04-11"],
+            "ticket_quantities": [2],
+            "min_price": 77.00,
+            "max_price": 78.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "price_range", "quantity_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/row_a_front",
+        name="Jeff Dunham - Front Row A",
+        description="Find tickets located specifically in Row A.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Jeff Dunham concert on April 11, 2026. Look for tickets specifically located in Row A."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham"],
+            "dates": ["2026-04-11"],
+            "rows": ["a"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/detroit_matinee",
+        name="Jeff Dunham - Detroit Matinee",
+        description="Navigate to a specific matinee show at Fox Theatre.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Jeff Dunham in Detroit, MI. Find tickets for his 3:00 PM matinee show at the Fox Theatre Detroit on April 25, 2026."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham"],
+            "cities": ["detroit"],
+            "venues": ["fox theatre"],
+            "dates": ["2026-04-25"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Detroit",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "location_filter", "time_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/vegas_show",
+        name="Jeff Dunham - Las Vegas",
+        description="Find tickets for a specific Las Vegas residency/tour stop.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for Jeff Dunham's 'Artificial Intelligence' tour stop in Las Vegas, NV at PH Live at Planet Hollywood on April 26, 2026."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham", "artificial intelligence"],
+            "cities": ["las vegas"],
+            "dates": ["2026-04-26"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "las_vegas", "exact_match"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/budget_under_80",
+        name="Jeff Dunham - Under $80",
+        description="Find a budget ticket below $80 for a comedy show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for Jeff Dunham tickets for his April 11, 2026 performance and verify if there are standard tickets available that cost less than $80."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham"],
+            "dates": ["2026-04-11"],
+            "max_price": 80.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/detroit_discovery",
+        name="Comedy Discovery - Detroit",
+        description="Verify location filters on the Comedy discovery page.",
+        url="https://www.ticketmaster.com/discover/comedy",
+        task_prompt=(
+            "Go to the Ticketmaster Comedy section and search for events happening in 'Detroit' on April 25, 2026. Do not need to click into any actual event."
+        ),
+        queries=[[{
+            "event_categories": ["comedy"],
+            "cities": ["detroit"],
+            "dates": ["2026-04-25"],
+            "require_available": False,
+        }]],
+        location="United States",
+        timezone="America/Detroit",
+        category="comedy",
+        tags=["comedy", "discovery", "location_filter", "date_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/comedy/jeff_dunham/row_c",
+        name="Jeff Dunham - Row C Specific",
+        description="Extract and verify tickets in Row C.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for tickets to the Jeff Dunham 'Artificial Intelligence' tour on April 11, 2026. Check if there are any tickets available in Row C."
+        ),
+        queries=[[{
+            "event_names": ["jeff dunham"],
+            "dates": ["2026-04-11"],
+            "rows": ["c"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="comedy",
+        tags=["comedy", "jeff dunham", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/david_copperfield/late_show",
+        name="David Copperfield - 9:30 PM Late Show",
+        description="Navigate to a specific late-night performance of a show.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for David Copperfield tickets on March 2, 2026. Find availability specifically for the 9:30 PM late show."
+        ),
+        queries=[[{
+            "event_names": ["david copperfield"],
+            "dates": ["2026-03-02"],
+            "times": ["21:30"], # Evaluator parses 9:30 PM as 21:30
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="theater",
+        tags=["magic", "theater", "david copperfield", "time_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/david_copperfield/discovery_dates",
+        name="David Copperfield - Discovery Date Range",
+        description="Verify date filters on the discovery page for a residency.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for David Copperfield events from March 26 to April 30, 2026. Do not need to click into a specific event."
+        ),
+        queries=[[{
+            "event_names": ["david copperfield"],
+            "dates": ["2026-03-26"], # The is_date_satisfied fallback will pass this
+            "require_available": False,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="theater",
+        tags=["magic", "theater", "david copperfield", "date_filter", "discovery"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/david_copperfield/4_tickets",
+        name="David Copperfield - Exactly 4 Tickets",
+        description="Find exactly 4 tickets for a specific date.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find exactly 4 tickets for the David Copperfield magic show on March 3, 2026."
+        ),
+        queries=[[{
+            "event_names": ["david copperfield"],
+            "dates": ["2026-03-03"],
+            "ticket_quantities": [4],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="theater",
+        tags=["magic", "theater", "david copperfield", "quantity_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/boise_location",
+        name="The Lion King - Boise Start",
+        description="Find the touring production of The Lion King in Boise, ID.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for 'The Lion King' Broadway touring production. Find the event happening in Boise, ID at the Morrison Center."
+        ),
+        queries=[[{
+            "event_names": ["lion king"], 
+            "cities": ["boise"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "lion king", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/march_7_matinee",
+        name="The Lion King - 1:00 PM Matinee",
+        description="Navigate to the early matinee performance.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for 'The Lion King' in Boise on March 7, 2026 to the 1:00 PM matinee show and check availability."
+        ),
+        queries=[[{
+            "event_names": ["lion king", "matinee show"],
+            "dates": ["2026-03-07"],
+            "times": ["13:00"], # 1:00 PM parsed
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "lion king", "time_constraint", "matinee"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/march_7_evening",
+        name="The Lion King - 7:00 PM Evening",
+        description="Navigate to the evening performance on the same day.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for 'The Lion King' in Boise on March 7, 2026. Navigate specifically to the 7:00 PM evening show and check availability."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-07"],
+            "times": ["19:00"], # 7:00 PM parsed
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "lion king", "time_constraint", "evening"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/qty2_price_range",
+        name="The Lion King - Pair between $100-$280",
+        description="Set a specific price range for exactly 2 tickets.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for 'The Lion King' touring show on March 27, 2026 and look for exactly 2 tickets priced in the range of $100 and $280."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "ticket_quantities": [2],
+            "min_price": 100.00,
+            "max_price": 280.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "quantity_filter", "price_range"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/budget_under_150",
+        name="The Lion King - Under $150",
+        description="Find a budget-friendly ticket below $150.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for 'The Lion King' tickets on March 27, 2026. Find any available ticket that costs less than $150."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "max_price": 150.00, # Will hit the $115/$117 tickets
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/premium_over_350",
+        name="The Lion King - Premium Over $350",
+        description="Find premium/VIP priced tickets.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for premium tickets to 'The Lion King' on March 27, 2026. Find tickets that are priced over $350."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "min_price": 350.00, # Will hit the $355/$406 tickets
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "premium_price"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/row_g",
+        name="The Lion King - Row G",
+        description="Verify tickets located exactly in Row G.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for 'The Lion King' on March 27, 2026. Look for tickets specifically located in Row G."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "rows": ["g"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/row_l_pair",
+        name="The Lion King - Pair in Row L",
+        description="Verify a pair of tickets located in Row L.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find exactly 2 tickets for 'The Lion King' on March 27, 2026. Ensure the tickets are located in Row L."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "ticket_quantities": [2],
+            "rows": ["l"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "row_constraint", "quantity_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/row_z",
+        name="The Lion King - Row Z",
+        description="Verify tickets located exactly in Row Z.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for tickets to 'The Lion King' on March 27, 2026. Look for tickets specifically located further back in Row Z."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "rows": ["z"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/theater/lion_king/primary_budget",
+        name="The Lion King - Standard Under $120",
+        description="Ensure verified resale is unchecked and find budget tickets.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for 'The Lion King' on March 27, 2026. Verify only the standard tickets availability priced under $120."
+        ),
+        queries=[[{
+            "event_names": ["lion king"],
+            "dates": ["2026-03-27"],
+            "exclude_resale": True,
+            "max_price": 120.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Boise",
+        category="theater",
+        tags=["theater", "broadway", "primary_only", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/banshees_season_ticket",
+        name="Boston Banshees - 2026 Season Ticket",
+        description="Find the season ticket package for the Boston Banshees.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the 2026 Banshees Season Ticket in Quincy, MA. Navigate to the listing and check ticket availability."
+        ),
+        queries=[[{
+            "event_names": ["banshees season ticket"], 
+            "cities": ["quincy"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "rugby", "season_tickets"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/exiles_vs_breakers",
+        name="NY Exiles vs Bay Breakers - Mt. Vernon",
+        description="Find a specific matchup in a specific city.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the New York Exiles vs Bay Breakers match happening in Mt. Vernon on May 9, 2026."
+        ),
+        queries=[[{
+            "event_names": ["exiles", "bay breakers"],
+            "dates": ["2026-05-09"],
+            "cities": ["mt. vernon"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "rugby", "exact_match", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/tempest_vs_banshees_primary",
+        name="Chicago Tempest vs Banshees - Standard Only",
+        description="Filter out verified resale for a specific game.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find only the standard tickets for the Chicago Tempest vs Boston Banshees game in Lisle on May 10, 2026. "
+        ),
+        queries=[[{
+            "event_names": ["tempest", "banshees"],
+            "dates": ["2026-05-10"],
+            "cities": ["lisle"],
+            "exclude_resale": True,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["sports", "rugby", "primary_only"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/onyx_vs_exiles",
+        name="Denver Onyx vs NY Exiles",
+        description="Locate a specific game in Denver.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for the Denver Onyx vs NY Exiles match taking place in Denver on June 21, 2026. Check availability of tickets."
+        ),
+        queries=[[{
+            "event_names": ["onyx", "exiles"],
+            "dates": ["2026-06-21"],
+            "cities": ["denver"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Denver",
+        category="sports",
+        tags=["sports", "rugby", "matchup"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/gemini_flexible_dates",
+        name="Twin Cities Gemini - Flexible Dates",
+        description="Find any Twin Cities Gemini home game in June.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find a Twin Cities Gemini home game in Eagan. Check ticket availability for either the June 7 or June 21, 2026 game."
+        ),
+        queries=[[{
+            "event_names": ["twin cities gemini", "tc gemini"],
+            "cities": ["eagan"],
+            "dates": ["2026-06-07", "2026-06-21"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["sports", "rugby", "flexible_dates"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/hounds_budget",
+        name="Chicago Hounds vs Free Jacks - Under $50",
+        description="Find an affordable ticket for a match in Nashville.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Chicago Hounds vs New England Free Jacks match in Nashville on April 19, 2026. Find tickets that cost less than $50."
+        ),
+        queries=[[{
+            "event_names": ["chicago hounds", "free jacks"],
+            "dates": ["2026-04-19"],
+            "cities": ["nashville"],
+            "max_price": 50.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["sports", "rugby", "budget"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/breakers_sacramento",
+        name="Bay Breakers vs Tempest - Sacramento",
+        description="Ensure the agent selects the game in Sacramento, not Lodi.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find the Bay Breakers vs Chicago Tempest match on May 31, 2026. Make sure it's the game happening specifically in Sacramento."
+        ),
+        queries=[[{
+            "event_names": ["bay breakers", "tempest"],
+            "dates": ["2026-05-31"],
+            "cities": ["sacramento"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Los_Angeles",
+        category="sports",
+        tags=["sports", "rugby", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/banshees_breakers_4_tickets",
+        name="Banshees vs Breakers - Exactly 4 Tickets",
+        description="Ensure the agent selects exactly 4 tickets from the dropdown.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Boston Banshees vs Bay Breakers game on June 7, 2026 in Quincy, search for exactly 4 tickets."
+        ),
+        queries=[[{
+            "event_names": ["boston banshees", "bay breakers"],
+            "dates": ["2026-06-07"],
+            "cities": ["quincy"],
+            "ticket_quantities": [4],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "rugby", "quantity_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/rugby/onyx_season_ticket",
+        name="Denver Onyx - 2026 Season Ticket",
+        description="Locate the specific Onyx Season Ticket package.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Locate the 2026 Onyx Season Ticket package for Denver and check availability."
+        ),
+        queries=[[{
+            "event_names": ["onyx season ticket"],
+            "cities": ["denver"],
+            "dates": ["2026-05-10"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Denver",
+        category="sports",
+        tags=["sports", "rugby", "season_tickets"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/brick_city_group_budget",
+        name="Brick City Fight Night - 8 Tickets ($100-$270)",
+        description="Find a large group of tickets within a specific mid-tier price range.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Brick City Fight Night Series happening on April 10, 2026 for exactly 8 tickets priced between $100 and $270."
+        ),
+        queries=[[{
+            "event_names": ["brick city fight night series"], 
+            "dates": ["2026-04-10"],
+            "ticket_quantities": [8],
+            "min_price": 100.00,
+            "max_price": 270.00,
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "quantity_filter", "price_range"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/brick_city_row_6",
+        name="Brick City Fight Night - Row 6",
+        description="Extract and verify tickets specifically located in Row 6.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Look for tickets to the Brick City Fight Night Series on April 10, 2026. Check if there are any tickets available exactly in Row 6."
+        ),
+        queries=[[{
+            "event_names": ["brick city fight night series"],
+            "dates": ["2026-04-10"],
+            "rows": ["6"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "row_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/matchroom_orlando",
+        name="Matchroom Boxing - Orlando 6:00 PM",
+        description="Navigate to a specific fight card at Caribe Royale.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the Matchroom Boxing event featuring Adames vs Williams. Navigate specifically to the event happening in Orlando on March 21, 2026 at 6:00 PM."
+        ),
+        queries=[[{
+            "event_names": ["matchroom boxing", "adames v williams"],
+            "dates": ["2026-03-21"],
+            "cities": ["orlando"],
+            "times": ["18:00"], # Evaluator parses 6:00 PM as 18:00
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "location_filter", "time_constraint"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/thursday_night_anchorage",
+        name="Thursday Night At The Fights - March 26",
+        description="Navigate to the correct date for a recurring local event.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for 'Thursday Night At The Fights' in Anchorage, AK. Fiind the event happening on March 26, 2026, not earlier in the month."
+        ),
+        queries=[[{
+            "event_names": ["thursday night at the fights"],
+            "dates": ["2026-03-26"],
+            "cities": ["anchorage"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Anchorage",
+        category="sports",
+        tags=["sports", "boxing", "date_constraint", "recurring_event"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/boxing_insider_atlantic_city",
+        name="Boxing Insider - Standard Tickets (No Hotel)",
+        description="Find the standard fight listing, avoiding the Ticket + Hotel Deals page.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the 'Boxing Insider: Live Professional Boxing' event in Atlantic City on March 7, 2026. Look at the standard event tickets, not the Ticket + Hotel Deals package."
+        ),
+        queries=[[{
+            "event_names": ["boxing insider: live professional boxing"], 
+            "dates": ["2026-03-07"],
+            "cities": ["atlantic city"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "exact_match", "standard_tickets"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/down_for_the_count_san_antonio",
+        name="Down For The Count - San Antonio",
+        description="Navigate to a highly specific local event with complex naming.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the 'Down For The Count' boxing event happening at Sam's Burger Joint in San Antonio, TX on March 20, 2026."
+        ),
+        queries=[[{
+            "event_names": ["down for the count"],
+            "dates": ["2026-03-20"],
+            "cities": ["san antonio"],
+            "venues": ["sam's burger joint"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/Chicago",
+        category="sports",
+        tags=["sports", "boxing", "location_filter", "exact_match"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/foxwoods_bare_knuckle",
+        name="Foxwoods Fight Night - Bare Knuckle",
+        description="Find the Bare Knuckle Boxing event at a specific casino.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Find tickets for the Foxwoods Fight Night - Bare Knuckle Boxing 52 event in Mashantucket, CT on March 28, 2026."
+        ),
+        queries=[[{
+            "event_names": ["foxwoods fight night", "bare knuckle boxing 52"],
+            "dates": ["2026-03-28"],
+            "cities": ["mashantucket"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "location_filter"],
+    ),
+    TaskScenario(
+        task_id="ticketmaster/sports/boxing/fdny_battle_of_badges",
+        name="FDNY Bravest Boxing - New York",
+        description="Find a specific charity boxing event.",
+        url="https://www.ticketmaster.com/",
+        task_prompt=(
+            "Search for the FDNY Bravest Boxing International Battle Of The Badges event happening in New York on March 6, 2026."
+        ),
+        queries=[[{
+            "event_names": ["fdny bravest boxing", "battle of the badges"],
+            "dates": ["2026-03-06"],
+            "cities": ["new york"],
+            "require_available": True,
+        }]],
+        location="United States",
+        timezone="America/New_York",
+        category="sports",
+        tags=["sports", "boxing", "charity_event", "location_filter"],
     )
+
 
 ]
 
